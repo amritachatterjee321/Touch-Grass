@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { MapPin, Users, User, ExternalLink, Star, Crown } from 'lucide-react';
+import { MapPin, Users, User, Star, Sword, X, Calendar } from 'lucide-react';
 import { FloppyDiskIcon } from './FloppyDiskIcon';
 import { AuthGuard } from './AuthGuard';
 
@@ -17,6 +17,7 @@ interface Event {
   interested: number;
   genderPreference: 'all' | 'women' | 'men';
   eventUrl?: string;
+  imageUrl?: string;
 }
 
 interface EventCardProps {
@@ -37,7 +38,7 @@ export const EventCard: React.FC<EventCardProps> = ({
   const [showAnimation, setShowAnimation] = useState(false);
   const [showSaveMessage, setShowSaveMessage] = useState(false);
 
-  const handleJoinQuest = () => {
+  const handleJoinQuest = (e?: React.MouseEvent) => {
     if (!isInterested) {
       setShowAnimation(true);
       // Animation will be hidden automatically when video ends
@@ -45,24 +46,30 @@ export const EventCard: React.FC<EventCardProps> = ({
     onToggleInterest(event.id);
   };
 
-  const handleSaveEvent = () => {
+  const handleSaveEvent = (e?: React.MouseEvent) => {
     onToggleSaved(event.id);
     if (!isSaved) {
       setShowSaveMessage(true);
       setTimeout(() => setShowSaveMessage(false), 2000);
     }
   };
+
+  const handleTitleClick = () => {
+    if (event.eventUrl) {
+      window.open(event.eventUrl, '_blank', 'noopener,noreferrer');
+    }
+  };
   const getCategoryColor = (category: string) => {
     const colors = {
-      Music: 'bg-[#dda0dd] text-white border-[#9370db]',
-      Sports: 'bg-[#87ceeb] text-white border-[#4682b4]',
-      Food: 'bg-[#ffa07a] text-white border-[#ff6347]',
+      Music: 'bg-[#dda0dd] text-[#2d2d2d] border-[#9370db]',
+      Sports: 'bg-[#87ceeb] text-[#2d2d2d] border-[#4682b4]',
+      Food: 'bg-[#ffa07a] text-[#2d2d2d] border-[#ff6347]',
       Outdoor: 'bg-[#98fb98] text-[#2d2d2d] border-[#32cd32]',
-      Arts: 'bg-[#ffb6c1] text-white border-[#ff69b4]',
+      Arts: 'bg-[#ffb6c1] text-[#2d2d2d] border-[#ff69b4]',
       Social: 'bg-[#f0e68c] text-[#2d2d2d] border-[#daa520]',
       Learning: 'bg-[#e6e6fa] text-[#2d2d2d] border-[#9370db]'
     };
-    return colors[category as keyof typeof colors] || 'bg-[#dda0dd] text-white border-[#9370db]';
+    return colors[category as keyof typeof colors] || 'bg-[#dda0dd] text-[#2d2d2d] border-[#9370db]';
   };
 
 
@@ -95,7 +102,7 @@ export const EventCard: React.FC<EventCardProps> = ({
 
   return (
     <article 
-      className="lilac-event-box quest-detail-section retro-border transform hover:scale-[1.02] transition-all duration-200 hover:shadow-xl relative"
+      className="lilac-event-box retro-border transform hover:scale-[1.02] transition-all duration-200 hover:shadow-xl relative"
       aria-labelledby={`event-title-${event.id}`}
       aria-describedby={`event-description-${event.id}`}
     >
@@ -124,33 +131,47 @@ export const EventCard: React.FC<EventCardProps> = ({
         </div>
       )}
       <div className="p-3 sm:p-4">
-        {/* Event Summary - Nested box */}
-        <div className="retro-border bg-white/80 p-3 sm:p-4 mb-3 sm:mb-4">
+        {/* Event Image */}
+        {event.imageUrl && (
+          <div className="mb-3 sm:mb-4">
+            <div className="retro-border overflow-hidden rounded-lg">
+              <img
+                src={event.imageUrl}
+                alt={`${event.title} event`}
+                className="w-full h-48 sm:h-56 object-cover"
+                loading="lazy"
+              />
+            </div>
+          </div>
+        )}
+        
+        {/* Event Summary */}
+        <div className="mb-3 sm:mb-4">
           <div className="flex items-start justify-between mb-3">
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-2">
                 <h3 
                   id={`event-title-${event.id}`}
-                  className="text-[#ff6347] text-base sm:text-lg flex-1 pixel-perfect"
+                  className={`text-[#ff6347] text-base sm:text-lg flex-1 pixel-perfect ${
+                    event.eventUrl ? 'cursor-pointer hover:text-[#4682b4] transition-colors underline decoration-dotted' : ''
+                  }`}
+                  onClick={event.eventUrl ? handleTitleClick : undefined}
+                  title={event.eventUrl ? "Click to view event details" : undefined}
+                  role={event.eventUrl ? "button" : undefined}
+                  tabIndex={event.eventUrl ? 0 : undefined}
+                  onKeyDown={event.eventUrl ? (e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      handleTitleClick();
+                    }
+                  } : undefined}
                 >
                   {event.title}
                 </h3>
 
               </div>
-              <div 
-                className="flex items-center gap-2 text-[#666666] text-xs sm:text-sm mb-2 cursor-pointer hover:text-[#4682b4] transition-colors"
-                onClick={handleSaveEvent}
-                title={isSaved ? "Remove from saved" : "Save event"}
-                role="button"
-                tabIndex={0}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    handleSaveEvent();
-                  }
-                }}
-              >
-                <FloppyDiskIcon className={`h-3 w-3 sm:h-4 sm:w-4 ${isSaved ? 'text-[#ff6347]' : ''}`} aria-hidden="true" />
+              <div className="flex items-center gap-2 text-[#666666] text-xs sm:text-sm mb-2">
+                <Calendar className="h-3 w-3 sm:h-4 sm:w-4" aria-hidden="true" />
                 <span className="font-normal">
                   <time dateTime={`${event.date} ${event.time}`}>
                     {event.date}, {event.time}
@@ -168,29 +189,25 @@ export const EventCard: React.FC<EventCardProps> = ({
               </div>
             </div>
             <div className="flex gap-1 sm:gap-2">
-              {event.eventUrl && (
-                <a
-                  href={event.eventUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="retro-button p-1.5 sm:p-2 text-[#4682b4] hover:text-[#ff6347] hover:bg-[#f0f8ff] transition-colors flex-shrink-0 min-h-[32px] min-w-[32px] sm:min-h-[40px] sm:min-w-[40px] flex items-center justify-center"
-                  title="View quest details"
-                  aria-label={`Open ${event.title} details in new tab`}
-                >
-                  <ExternalLink className="h-3 w-3 sm:h-4 sm:w-4 pixel-perfect" />
-                </a>
-              )}
+
               <AuthGuard 
                 action="save-event"
-                className={`retro-button p-1.5 sm:p-2 transition-colors flex-shrink-0 min-h-[32px] min-w-[32px] sm:min-h-[40px] sm:min-w-[40px] flex items-center justify-center ${
+                className={`retro-button p-2 sm:p-3 transition-colors flex-shrink-0 min-h-[40px] min-w-[40px] sm:min-h-[48px] sm:min-w-[48px] flex items-center justify-center ${
                   isSaved 
                     ? 'text-[#ff6347] bg-[#ffe6e6] hover:bg-[#ffd6d6]' 
                     : 'text-[#4682b4] hover:text-[#ff6347] hover:bg-[#f0f8ff]'
                 }`}
                 onClick={handleSaveEvent}
-                title="Save quest"
+                title={isSaved ? "Remove from saved" : "Save quest"}
               >
-                <FloppyDiskIcon className={`h-3 w-3 sm:h-4 sm:w-4 pixel-perfect ${isSaved ? 'fill-current' : ''}`} />
+                {isSaved ? (
+                  <X className="h-5 w-5 sm:h-6 sm:w-6 pixel-perfect" />
+                ) : (
+                  <FloppyDiskIcon 
+                    className={`h-5 w-5 sm:h-6 sm:w-6 pixel-perfect`} 
+                    filled={false}
+                  />
+                )}
               </AuthGuard>
             </div>
           </div>
@@ -222,16 +239,6 @@ export const EventCard: React.FC<EventCardProps> = ({
           
           {/* Right: Access/Cost Info */}
           <div className="flex flex-col items-start sm:items-end space-y-1">
-            <div className="flex items-center gap-1 text-xs sm:text-sm justify-start sm:justify-end">
-              <Users className="h-3 w-3 sm:h-4 sm:w-4" />
-              <span className={`font-normal ${
-                event.genderPreference === 'women' ? 'text-[#ff69b4]' : 
-                event.genderPreference === 'men' ? 'text-[#4682b4]' : 
-                'text-[#666666]'
-              }`}>
-                {getGenderLabel(event.genderPreference)}
-              </span>
-            </div>
             <div className="flex items-center gap-1 text-xs sm:text-sm font-semibold justify-start sm:justify-end">
               <span className="font-normal">+</span>
               <span className={`font-normal ${
@@ -250,24 +257,7 @@ export const EventCard: React.FC<EventCardProps> = ({
               <span className="font-semibold">{event.category.toUpperCase()}</span>
             </div>
             <div className="flex items-center gap-2 text-[#9370db] text-xs">
-              {getTypeIcon(event.type)}
-              <span className="font-semibold">Quest Type:</span> 
-              <span className="font-normal">{event.type}</span>
-            </div>
-          </div>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-1 text-xs">
-              <Users className="h-3 w-3" />
-              <span className={`font-normal ${
-                event.genderPreference === 'women' ? 'text-[#ff69b4]' : 
-                event.genderPreference === 'men' ? 'text-[#4682b4]' : 
-                'text-[#666666]'
-              }`}>
-                {getGenderLabel(event.genderPreference)}
-              </span>
-            </div>
-            <div className="flex items-center gap-2 text-[#9370db] text-xs">
-              <Crown className="h-3 w-3" />
+              <Sword className="h-3 w-3" />
               <span className="font-semibold">Quest Master:</span> 
               <span className="font-normal">{event.organizer}</span>
             </div>
@@ -289,13 +279,7 @@ export const EventCard: React.FC<EventCardProps> = ({
           {/* Quest Details */}
           <div className="space-y-2 sm:space-y-3">
             <div className="flex items-center gap-2 text-[#9370db] text-xs sm:text-sm">
-              {getTypeIcon(event.type)}
-              <span className="font-semibold">Quest Type:</span> 
-              <span className="font-normal">{event.type}</span>
-            </div>
-            
-            <div className="flex items-center gap-2 text-[#9370db] text-xs sm:text-sm">
-              <Crown className="h-3 w-3 sm:h-4 sm:w-4" />
+              <Sword className="h-3 w-3 sm:h-4 sm:w-4" />
               <span className="font-semibold">Quest Master:</span> 
               <span className="font-normal">{event.organizer}</span>
             </div>

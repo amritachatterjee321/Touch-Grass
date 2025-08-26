@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { User, Edit, Save, X } from 'lucide-react';
+import { User, Edit, Save, X, LogOut } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
@@ -7,7 +7,7 @@ import { Label } from '../ui/label';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 
 export const Profile: React.FC = () => {
-  const { user, showAuthModal } = useAuth();
+  const { user, signOut } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [profileData, setProfileData] = useState({
     name: user?.name || '',
@@ -17,6 +17,8 @@ export const Profile: React.FC = () => {
     gender: user?.gender || '',
     personalityType: user?.personalityType || ''
   });
+
+
 
   const handleSave = () => {
     // In a real app, you would save this to your backend
@@ -36,6 +38,8 @@ export const Profile: React.FC = () => {
     setIsEditing(false);
   };
 
+
+
   if (!user) {
     return (
       <div className="text-center p-8">
@@ -46,14 +50,7 @@ export const Profile: React.FC = () => {
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
-      <div className="text-center mb-6">
-        <h2 className="text-[#ff6347] text-xl sm:text-2xl mb-2 pixel-perfect">
-          ~ HERO PROFILE ~
-        </h2>
-        <p className="text-[#4682b4] text-sm pixel-perfect">
-          Manage your adventure companion profile
-        </p>
-      </div>
+
 
       <div className="retro-border bg-[#f0f8ff] border-[#87ceeb] p-6">
         {/* Profile Header */}
@@ -197,20 +194,18 @@ export const Profile: React.FC = () => {
             </Button>
           </div>
         )}
-      </div>
+              </div>
 
-      {/* Profile Completion Status */}
-      <div className="retro-border bg-[#fff3cd] border-[#ffc107] p-4">
-        <h4 className="text-[#856404] text-sm font-semibold mb-2 pixel-perfect">Profile Completion</h4>
-        <div className="w-full bg-[#ffeaa7] rounded-full h-2 mb-2">
-          <div 
-            className="bg-[#fdcb6e] h-2 rounded-full transition-all duration-300"
-            style={{ width: `${user.profileComplete ? 100 : 60}%` }}
-          ></div>
-        </div>
-        <p className="text-[#856404] text-xs pixel-perfect">
-          {user.profileComplete ? 'Profile complete!' : 'Complete your profile for better quest matching'}
-        </p>
+        {/* Logout Section */}
+      <div className="retro-border bg-[#ffe6e6] border-[#ff6347] p-4">
+        <h4 className="text-[#d32f2f] text-sm font-semibold mb-3 pixel-perfect">Account Actions</h4>
+        <Button
+          onClick={signOut}
+          className="retro-button px-4 py-2 text-[#ffffff] bg-[#ff6347] border-[#d32f2f] hover:bg-[#ff5252] w-full"
+        >
+          <LogOut className="h-4 w-4 mr-2" />
+          <span className="pixel-perfect">LOGOUT</span>
+        </Button>
       </div>
     </div>
   );

@@ -30,6 +30,102 @@ import { Profile } from './components/pages/Profile';
 import { Settings } from './components/pages/Settings';
 import { useIsMobile } from './components/ui/use-mobile';
 import { useUnreadMessages } from './hooks/useUnreadMessages';
+import { ImageUpload } from './components/ImageUpload';
+
+// Add custom styles for form consistency
+const formStyles = `
+  .form-input, .form-textarea, .form-select {
+    font-size: 12px !important;
+    font-weight: normal !important;
+    font-family: 'Press Start 2P', monospace !important;
+    line-height: 1.4 !important;
+  }
+  
+  .form-input::placeholder, .form-textarea::placeholder {
+    font-size: 10px !important;
+    font-weight: normal !important;
+    color: #9ca3af !important;
+  }
+  
+  .form-select option {
+    font-size: 12px !important;
+    font-weight: normal !important;
+  }
+  
+  /* Ensure all select options are not bold */
+  select option {
+    font-weight: normal !important;
+    font-size: 12px !important;
+  }
+  
+  /* Ensure all select elements have consistent text size */
+  select {
+    font-size: 10px !important;
+    font-weight: normal !important;
+    font-family: 'Press Start 2P', monospace !important;
+  }
+  
+  /* Ensure placeholder text in all inputs is small */
+  input::placeholder, textarea::placeholder {
+    font-size: 10px !important;
+    font-weight: normal !important;
+    color: #9ca3af !important;
+  }
+  
+  /* Ensure date and time inputs work properly */
+  input[type="date"], input[type="time"] {
+    font-size: 12px !important;
+    font-weight: normal !important;
+    font-family: 'Press Start 2P', monospace !important;
+    line-height: 1.4 !important;
+    color: #2d2d2d !important;
+    background: #ffffff !important;
+    border: 4px solid #87ceeb !important;
+    border-style: outset !important;
+    padding: 8px 12px !important;
+    border-radius: 0 !important;
+    cursor: pointer !important;
+    position: relative !important;
+    z-index: 10 !important;
+  }
+  
+  input[type="date"]::-webkit-calendar-picker-indicator,
+  input[type="time"]::-webkit-calendar-picker-indicator {
+    cursor: pointer !important;
+    filter: invert(0.5) !important;
+    position: relative !important;
+    z-index: 20 !important;
+  }
+  
+  input[type="date"]:focus, input[type="time"]:focus {
+    outline: 3px solid #ff6347 !important;
+    outline-offset: 2px !important;
+    border-color: #ff6347 !important;
+    z-index: 30 !important;
+  }
+  
+  /* Ensure the date/time picker popup appears above other elements */
+  input[type="date"]::-webkit-datetime-edit,
+  input[type="time"]::-webkit-datetime-edit {
+    color: #2d2d2d !important;
+    font-size: 12px !important;
+    font-weight: normal !important;
+  }
+  
+  /* Ensure date picker popup appears above modal */
+  input[type="date"]::-webkit-calendar-picker-indicator {
+    z-index: 1000 !important;
+  }
+  
+  /* Override any modal z-index issues */
+  .DialogContent {
+    z-index: 50 !important;
+  }
+  
+  input[type="date"] {
+    z-index: 100 !important;
+  }
+`;
 
 
 interface Event {
@@ -46,6 +142,7 @@ interface Event {
   interested: number;
   genderPreference: 'all' | 'women' | 'men';
   eventUrl?: string;
+  imageUrl?: string;
 }
 
 
@@ -66,7 +163,8 @@ const mockEvents: Event[] = [
     organizer: 'Sarah M.',
     interested: 3,
     genderPreference: 'women',
-    eventUrl: 'https://www.eventbrite.com/e/jazz-night-blue-note'
+    eventUrl: 'https://www.eventbrite.com/e/jazz-night-blue-note',
+    imageUrl: 'https://images.unsplash.com/photo-1511192336575-5a79af67a629?w=800&h=400&fit=crop'
   },
   {
     id: '2',
@@ -81,7 +179,8 @@ const mockEvents: Event[] = [
     organizer: 'Mike T.',
     interested: 8,
     genderPreference: 'all',
-    eventUrl: 'https://www.meetup.com/food-lovers-nyc/events/food-truck-festival'
+    eventUrl: 'https://www.meetup.com/food-lovers-nyc/events/food-truck-festival',
+    imageUrl: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=800&h=400&fit=crop'
   },
   {
     id: '3',
@@ -95,7 +194,8 @@ const mockEvents: Event[] = [
     price: 'Free',
     organizer: 'Alex K.',
     interested: 5,
-    genderPreference: 'all'
+    genderPreference: 'all',
+    imageUrl: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=400&fit=crop'
   },
   {
     id: '4',
@@ -110,7 +210,8 @@ const mockEvents: Event[] = [
     organizer: 'Emma L.',
     interested: 4,
     genderPreference: 'women',
-    eventUrl: 'https://www.facebook.com/events/contemporary-art-exhibition'
+    eventUrl: 'https://www.facebook.com/events/contemporary-art-exhibition',
+    imageUrl: 'https://images.unsplash.com/photo-1541961017774-22349e4a1262?w=800&h=400&fit=crop'
   },
   {
     id: '5',
@@ -125,7 +226,8 @@ const mockEvents: Event[] = [
     organizer: 'Jordan P.',
     interested: 12,
     genderPreference: 'men',
-    eventUrl: 'https://www.meetup.com/basketball-pickup-games'
+    eventUrl: 'https://www.meetup.com/basketball-pickup-games',
+    imageUrl: 'https://images.unsplash.com/photo-1546519638-68e109498ffc?w=800&h=400&fit=crop'
   }
 ];
 
@@ -136,6 +238,19 @@ function AppContent() {
   const [interestedEvents, setInterestedEvents] = useState<Set<string>>(new Set());
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState('quests');
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  
+  // Form state for creating new events
+  const [formData, setFormData] = useState({
+    title: '',
+    description: '',
+    date: '',
+    time: '',
+    location: '',
+    price: 'Free',
+    eventUrl: ''
+  });
+
   const isMobile = useIsMobile();
   const { getTotalUnreadCount } = useUnreadMessages();
 
@@ -172,11 +287,65 @@ function AppContent() {
     }
   };
 
+  const handleCreateEvent = (e?: React.MouseEvent) => {
+    // Validate required fields
+    if (!formData.title.trim() || !formData.description.trim() || !formData.date || !formData.time || !formData.location.trim()) {
+      alert('Please fill in all required fields: Quest Name, Description, Date, Time, and Location');
+      return;
+    }
+
+    const createEvent = (imageUrl?: string) => {
+      const newEvent: Event = {
+        id: Date.now().toString(),
+        title: formData.title,
+        description: formData.description,
+        date: formData.date,
+        time: formData.time,
+        location: formData.location,
+        category: 'Social', // Default category
+        type: 'Group',
+        price: formData.price || 'Free',
+        organizer: user?.name || 'Anonymous',
+        interested: 0,
+        genderPreference: 'all', // Default to all heroes
+        eventUrl: formData.eventUrl || undefined,
+        imageUrl: imageUrl
+      };
+      
+      setEvents([newEvent, ...events]);
+      
+      // Reset form and close dialog
+      setFormData({
+        title: '',
+        description: '',
+        date: '',
+        time: '',
+        location: '',
+        price: 'Free',
+        eventUrl: ''
+      });
+      setSelectedImage(null);
+      setIsCreateDialogOpen(false);
+    };
+
+    // Handle image upload if present
+    if (selectedImage) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        createEvent(e.target?.result as string);
+      };
+      reader.readAsDataURL(selectedImage);
+    } else {
+      createEvent();
+    }
+  };
+
   // Check if user profile is complete
   const isProfileComplete = user?.profileComplete && user?.gender && user?.age && user?.city && user?.bio && user?.personalityType;
 
   return (
     <div className="min-h-screen bg-[#f5f5dc]" style={{ fontFamily: "'Press Start 2P', monospace" }}>
+      <style dangerouslySetInnerHTML={{ __html: formStyles }} />
       {/* Header Section - TOUCHGRASS */}
       <header className="lilac-header p-2 sm:p-4">
         <div className="retro-border p-2 sm:p-4">
@@ -261,75 +430,314 @@ function AppContent() {
                         <span className="pixel-perfect">◀</span>
                       </AuthGuard>
                     </DialogTrigger>
-                    <DialogContent className="retro-border bg-[#e6e6fa] border-[#87ceeb] text-[#2d2d2d] max-w-[95vw] sm:max-w-lg max-h-[90vh] overflow-y-auto">
+                    <DialogContent className="retro-border bg-[#e6e6fa] border-[#87ceeb] text-[#2d2d2d] max-w-[95vw] sm:max-w-lg max-h-[90vh]">
                       <DialogHeader className="retro-border bg-[#f0f8ff] p-3 sm:p-4 mb-4 sm:mb-6">
                         <DialogTitle className="text-[#ff6347] text-center text-base sm:text-lg pixel-perfect">~ CREATE NEW QUEST ~</DialogTitle>
                       </DialogHeader>
-                      <div className="space-y-4 sm:space-y-5 text-sm">
+                      <div className="space-y-4 sm:space-y-5 text-sm overflow-y-auto max-h-[70vh]">
                         <div>
                           <Label htmlFor="title" className="text-[#4682b4] text-xs pixel-perfect">Quest Name:</Label>
-                          <Input id="title" placeholder="What's your adventure?" className="retro-border bg-[#ffffff] text-[#2d2d2d] border-[#87ceeb] mt-2 h-10 sm:h-12 text-sm" />
+                          <Input 
+                            id="title" 
+                            placeholder="What's your adventure?" 
+                            className="form-input retro-border bg-[#ffffff] text-[#2d2d2d] border-[#87ceeb] mt-2 h-10 sm:h-12"
+                            value={formData.title}
+                            onChange={(e) => setFormData({...formData, title: e.target.value})}
+                          />
                         </div>
                         <div>
                           <Label htmlFor="description" className="text-[#4682b4] text-xs pixel-perfect">Quest Description:</Label>
-                          <Textarea id="description" placeholder="Tell heroes about your quest..." rows={3} className="retro-border bg-[#ffffff] text-[#2d2d2d] border-[#87ceeb] mt-2 min-h-[80px] sm:min-h-[100px] text-sm" />
+                          <Textarea 
+                            id="description" 
+                            placeholder="Tell heroes about your quest..." 
+                            rows={3} 
+                            className="form-textarea retro-border bg-[#ffffff] text-[#2d2d2d] border-[#87ceeb] mt-2 min-h-[80px] sm:min-h-[100px]"
+                            value={formData.description}
+                            onChange={(e) => setFormData({...formData, description: e.target.value})}
+                          />
                         </div>
                         <div className="grid grid-cols-1 gap-4">
                           <div>
                             <Label htmlFor="date" className="text-[#4682b4] text-xs pixel-perfect">Date:</Label>
-                            <Input id="date" type="date" className="retro-border bg-[#ffffff] text-[#2d2d2d] border-[#87ceeb] mt-2 h-10 sm:h-12 text-sm" />
+                            <div className="flex gap-1">
+                              <select 
+                                value={formData.date.split('-')[2] || '01'}
+                                onChange={(e) => {
+                                  const currentDate = formData.date || '2025-01-01';
+                                  const [year, month] = currentDate.split('-');
+                                  const newDate = `${year || '2025'}-${month || '01'}-${e.target.value}`;
+                                  console.log('Day changed to:', newDate);
+                                  setFormData({...formData, date: newDate});
+                                }}
+                                style={{
+                                  fontSize: '10px',
+                                  fontWeight: 'normal',
+                                  fontFamily: "'Press Start 2P', monospace",
+                                  lineHeight: '1.4',
+                                  color: '#2d2d2d',
+                                  background: '#ffffff',
+                                  border: '4px solid #87ceeb',
+                                  borderStyle: 'outset',
+                                  padding: '8px 12px',
+                                  borderRadius: '0',
+                                  width: '25%',
+                                  height: '32px',
+                                  marginTop: '8px'
+                                }}
+                              >
+                                {Array.from({length: 31}, (_, i) => i + 1).map(day => (
+                                  <option key={day} value={day.toString().padStart(2, '0')}>
+                                    {day}
+                                  </option>
+                                ))}
+                              </select>
+                              <span style={{ marginTop: '8px', fontSize: '12px', color: '#2d2d2d' }}>/</span>
+                              <select 
+                                value={formData.date.split('-')[1] || '01'}
+                                onChange={(e) => {
+                                  const currentDate = formData.date || '2025-01-01';
+                                  const [year, _, day] = currentDate.split('-');
+                                  const newDate = `${year || '2025'}-${e.target.value}-${day || '01'}`;
+                                  console.log('Month changed to:', newDate);
+                                  setFormData({...formData, date: newDate});
+                                }}
+                                style={{
+                                  fontSize: '10px',
+                                  fontWeight: 'normal',
+                                  fontFamily: "'Press Start 2P', monospace",
+                                  lineHeight: '1.4',
+                                  color: '#2d2d2d',
+                                  background: '#ffffff',
+                                  border: '4px solid #87ceeb',
+                                  borderStyle: 'outset',
+                                  padding: '8px 12px',
+                                  borderRadius: '0',
+                                  width: '25%',
+                                  height: '32px',
+                                  marginTop: '8px'
+                                }}
+                              >
+                                {[
+                                  {value: '01', label: 'Jan'},
+                                  {value: '02', label: 'Feb'},
+                                  {value: '03', label: 'Mar'},
+                                  {value: '04', label: 'Apr'},
+                                  {value: '05', label: 'May'},
+                                  {value: '06', label: 'Jun'},
+                                  {value: '07', label: 'Jul'},
+                                  {value: '08', label: 'Aug'},
+                                  {value: '09', label: 'Sep'},
+                                  {value: '10', label: 'Oct'},
+                                  {value: '11', label: 'Nov'},
+                                  {value: '12', label: 'Dec'}
+                                ].map(month => (
+                                  <option key={month.value} value={month.value}>
+                                    {month.label}
+                                  </option>
+                                ))}
+                              </select>
+                              <span style={{ marginTop: '8px', fontSize: '12px', color: '#2d2d2d' }}>/</span>
+                              <select 
+                                value={formData.date.split('-')[0] || '2025'}
+                                onChange={(e) => {
+                                  const currentDate = formData.date || '2025-01-01';
+                                  const [_, month, day] = currentDate.split('-');
+                                  const newDate = `${e.target.value}-${month || '01'}-${day || '01'}`;
+                                  console.log('Year changed to:', newDate);
+                                  setFormData({...formData, date: newDate});
+                                }}
+                                style={{
+                                  fontSize: '10px',
+                                  fontWeight: 'normal',
+                                  fontFamily: "'Press Start 2P', monospace",
+                                  lineHeight: '1.4',
+                                  color: '#2d2d2d',
+                                  background: '#ffffff',
+                                  border: '4px solid #87ceeb',
+                                  borderStyle: 'outset',
+                                  padding: '8px 12px',
+                                  borderRadius: '0',
+                                  width: '35%',
+                                  height: '32px',
+                                  marginTop: '8px'
+                                }}
+                              >
+                                {Array.from({length: 10}, (_, i) => new Date().getFullYear() + i).map(year => (
+                                  <option key={year} value={year}>
+                                    {year}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
                           </div>
                           <div>
                             <Label htmlFor="time" className="text-[#4682b4] text-xs pixel-perfect">Time:</Label>
-                            <Input id="time" type="time" className="retro-border bg-[#ffffff] text-[#2d2d2d] border-[#87ceeb] mt-2 h-10 sm:h-12 text-sm" />
+                            <div className="flex gap-1">
+                              <select 
+                                value={(() => {
+                                  const currentTime = formData.time || '12:00';
+                                  const [hours] = currentTime.split(':');
+                                  const hour = parseInt(hours);
+                                  return hour === 0 ? '12' : (hour > 12 ? (hour - 12).toString() : hour.toString());
+                                })()}
+                                onChange={(e) => {
+                                  const currentTime = formData.time || '12:00';
+                                  const [hours, minutes] = currentTime.split(':');
+                                  const currentHour = parseInt(hours);
+                                  const isPM = currentHour >= 12;
+                                  let newHour = parseInt(e.target.value);
+                                  if (isPM && newHour !== 12) {
+                                    newHour += 12;
+                                  } else if (!isPM && newHour === 12) {
+                                    newHour = 0;
+                                  }
+                                  const newTime = `${newHour.toString().padStart(2, '0')}:${minutes || '00'}`;
+                                  console.log('Hour changed to:', newTime);
+                                  setFormData({...formData, time: newTime});
+                                }}
+                                style={{
+                                  fontSize: '10px',
+                                  fontWeight: 'normal',
+                                  fontFamily: "'Press Start 2P', monospace",
+                                  lineHeight: '1.4',
+                                  color: '#2d2d2d',
+                                  background: '#ffffff',
+                                  border: '4px solid #87ceeb',
+                                  borderStyle: 'outset',
+                                  padding: '8px 12px',
+                                  borderRadius: '0',
+                                  width: '25%',
+                                  height: '32px',
+                                  marginTop: '8px'
+                                }}
+                              >
+                                {Array.from({length: 12}, (_, i) => i + 1).map(hour => (
+                                  <option key={hour} value={hour.toString().padStart(2, '0')}>
+                                    {hour}
+                                  </option>
+                                ))}
+                              </select>
+                              <span style={{ marginTop: '8px', fontSize: '12px', color: '#2d2d2d' }}>:</span>
+                              <select 
+                                value={formData.time.split(':')[1] || '00'}
+                                onChange={(e) => {
+                                  const currentTime = formData.time || '12:00';
+                                  const [hours] = currentTime.split(':');
+                                  const newTime = `${hours || '12'}:${e.target.value}`;
+                                  console.log('Minutes changed to:', newTime);
+                                  setFormData({...formData, time: newTime});
+                                }}
+                                style={{
+                                  fontSize: '10px',
+                                  fontWeight: 'normal',
+                                  fontFamily: "'Press Start 2P', monospace",
+                                  lineHeight: '1.4',
+                                  color: '#2d2d2d',
+                                  background: '#ffffff',
+                                  border: '4px solid #87ceeb',
+                                  borderStyle: 'outset',
+                                  padding: '8px 12px',
+                                  borderRadius: '0',
+                                  width: '25%',
+                                  height: '32px',
+                                  marginTop: '8px'
+                                }}
+                              >
+                                {Array.from({length: 60}, (_, i) => i).map(minute => (
+                                  <option key={minute} value={minute.toString().padStart(2, '0')}>
+                                    {minute.toString().padStart(2, '0')}
+                                  </option>
+                                ))}
+                              </select>
+                              <select 
+                                value={(() => {
+                                  const currentTime = formData.time || '12:00';
+                                  const [hours] = currentTime.split(':');
+                                  const hour = parseInt(hours);
+                                  return hour >= 12 ? 'PM' : 'AM';
+                                })()}
+                                onChange={(e) => {
+                                  const currentTime = formData.time || '12:00';
+                                  const [hours, minutes] = currentTime.split(':');
+                                  let hour = parseInt(hours);
+                                  if (e.target.value === 'PM' && hour < 12) {
+                                    hour += 12;
+                                  } else if (e.target.value === 'AM' && hour >= 12) {
+                                    hour -= 12;
+                                  }
+                                  const newTime = `${hour.toString().padStart(2, '0')}:${minutes || '00'}`;
+                                  console.log('AM/PM changed to:', newTime);
+                                  setFormData({...formData, time: newTime});
+                                }}
+                                style={{
+                                  fontSize: '10px',
+                                  fontWeight: 'normal',
+                                  fontFamily: "'Press Start 2P', monospace",
+                                  lineHeight: '1.4',
+                                  color: '#2d2d2d',
+                                  background: '#ffffff',
+                                  border: '4px solid #87ceeb',
+                                  borderStyle: 'outset',
+                                  padding: '8px 12px',
+                                  borderRadius: '0',
+                                  width: '20%',
+                                  height: '32px',
+                                  marginTop: '8px'
+                                }}
+                              >
+                                <option value="AM">AM</option>
+                                <option value="PM">PM</option>
+                              </select>
+                            </div>
                           </div>
                         </div>
                         <div>
                           <Label htmlFor="location" className="text-[#4682b4] text-xs pixel-perfect">Location:</Label>
-                          <Input id="location" placeholder="Where is the quest?" className="retro-border bg-[#ffffff] text-[#2d2d2d] border-[#87ceeb] mt-2 h-10 sm:h-12 text-sm" />
-                        </div>
-                        <div className="grid grid-cols-1 gap-4">
-                          <div>
-                            <Label htmlFor="category" className="text-[#4682b4] text-xs pixel-perfect">Quest Type:</Label>
-                            <Select>
-                              <SelectTrigger className="retro-border bg-[#ffffff] text-[#2d2d2d] border-[#87ceeb] mt-2 h-10 sm:h-12 text-sm">
-                                <SelectValue placeholder="Choose type" />
-                              </SelectTrigger>
-                              <SelectContent className="retro-border bg-[#e6e6fa] border-[#87ceeb]">
-                                {categories.slice(1).map(category => (
-                                  <SelectItem key={category} value={category.toLowerCase()} className="text-[#2d2d2d] hover:bg-[#87ceeb] text-sm">
-                                    {category}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </div>
-                          <div>
-                            <Label htmlFor="price" className="text-[#4682b4] text-xs pixel-perfect">Cost (Gold):</Label>
-                            <Input id="price" placeholder="e.g., Free, 20 Gold" className="retro-border bg-[#ffffff] text-[#2d2d2d] border-[#87ceeb] mt-2 h-10 sm:h-12 text-sm" />
-                          </div>
+                          <Input 
+                            id="location" 
+                            placeholder="Where is the quest?" 
+                            className="form-input retro-border bg-[#ffffff] text-[#2d2d2d] border-[#87ceeb] mt-2 h-10 sm:h-12"
+                            value={formData.location}
+                            onChange={(e) => setFormData({...formData, location: e.target.value})}
+                          />
                         </div>
                         <div>
-                          <Label htmlFor="genderPreference" className="text-[#4682b4] text-xs pixel-perfect">Who can join?</Label>
-                          <Select>
-                            <SelectTrigger className="retro-border bg-[#ffffff] text-[#2d2d2d] border-[#87ceeb] mt-2 h-10 sm:h-12 text-sm">
-                              <SelectValue placeholder="Choose heroes" />
-                            </SelectTrigger>
-                            <SelectContent className="retro-border bg-[#e6e6fa] border-[#87ceeb]">
-                              <SelectItem value="all" className="text-[#2d2d2d] hover:bg-[#87ceeb] text-sm">All Heroes</SelectItem>
-                              <SelectItem value="women" className="text-[#2d2d2d] hover:bg-[#87ceeb] text-sm">Princesses Only</SelectItem>
-                              <SelectItem value="men" className="text-[#2d2d2d] hover:bg-[#87ceeb] text-sm">Knights Only</SelectItem>
-                            </SelectContent>
-                          </Select>
+                          <Label htmlFor="price" className="text-[#4682b4] text-xs pixel-perfect">Cost:</Label>
+                          <select 
+                            id="price"
+                            value={formData.price}
+                            onChange={(e) => {
+                              console.log('Price changed to:', e.target.value);
+                              setFormData({...formData, price: e.target.value});
+                            }}
+                            className="form-select retro-border bg-[#ffffff] text-[#2d2d2d] border-[#87ceeb] mt-2 h-10 sm:h-12 w-full px-3 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-[#87ceeb]"
+                          >
+                            <option value="Free" className="text-xs">Free</option>
+                            <option value="Paid" className="text-xs">Paid</option>
+                          </select>
                         </div>
+
                         <div>
                           <Label htmlFor="eventUrl" className="text-[#4682b4] text-xs pixel-perfect">Quest Link (Optional):</Label>
-                          <Input id="eventUrl" placeholder="https://..." className="retro-border bg-[#ffffff] text-[#2d2d2d] border-[#87ceeb] mt-2 h-10 sm:h-12 text-sm" />
+                          <Input 
+                            id="eventUrl" 
+                            placeholder="https://..." 
+                            className="form-input retro-border bg-[#ffffff] text-[#2d2d2d] border-[#87ceeb] mt-2 h-10 sm:h-12"
+                            value={formData.eventUrl}
+                            onChange={(e) => setFormData({...formData, eventUrl: e.target.value})}
+                          />
+                        </div>
+                        <div>
+                          <Label className="text-[#4682b4] text-xs pixel-perfect">Quest Image (Optional):</Label>
+                          <ImageUpload 
+                            onImageChange={setSelectedImage}
+                            className="mt-2"
+                          />
                         </div>
                         <AuthGuard 
                           action="create-quest"
                           className="retro-button w-full h-12 sm:h-14 text-[#2d2d2d] bg-[#98fb98] border-[#32cd32] hover:bg-[#90ee90] transition-all duration-200 text-sm sm:text-base font-bold shadow-lg hover:shadow-xl transform hover:scale-[1.02] active:scale-[0.98]"
-                          onClick={() => setIsCreateDialogOpen(false)}
+                          onClick={handleCreateEvent}
                         >
                           <span className="pixel-perfect">▶ CREATE QUEST ◀</span>
                         </AuthGuard>
@@ -390,96 +798,6 @@ function AppContent() {
           </>
         ) : (
           <>
-            {/* Start New Quest Button */}
-            <div className="mb-6 sm:mb-8">
-              <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-                <DialogTrigger asChild>
-                  <AuthGuard 
-                    action="create-quest"
-                    className="retro-button w-full h-12 sm:h-16 text-[#2d2d2d] text-base sm:text-xl bg-[#98fb98] border-4 border-[#32cd32] hover:bg-[#90ee90] transition-all duration-200 flex items-center justify-center gap-2 sm:gap-3 shadow-lg hover:shadow-xl transform hover:scale-[1.02] active:scale-[0.98]"
-                  >
-                    <span className="pixel-perfect">▶</span>
-                    <span className="pixel-perfect">START NEW QUEST</span>
-                    <span className="pixel-perfect">◀</span>
-                  </AuthGuard>
-                </DialogTrigger>
-                <DialogContent className="retro-border bg-[#e6e6fa] border-[#87ceeb] text-[#2d2d2d] max-w-[95vw] sm:max-w-lg max-h-[90vh] overflow-y-auto">
-                  <DialogHeader className="retro-border bg-[#f0f8ff] p-3 sm:p-4 mb-4 sm:mb-6">
-                    <DialogTitle className="text-[#ff6347] text-center text-base sm:text-lg pixel-perfect">~ CREATE NEW QUEST ~</DialogTitle>
-                  </DialogHeader>
-                  <div className="space-y-4 sm:space-y-5 text-sm">
-                    <div>
-                      <Label htmlFor="title" className="text-[#4682b4] text-xs pixel-perfect">Quest Name:</Label>
-                      <Input id="title" placeholder="What's your adventure?" className="retro-border bg-[#ffffff] text-[#2d2d2d] border-[#87ceeb] mt-2 h-10 sm:h-12 text-sm" />
-                    </div>
-                    <div>
-                      <Label htmlFor="description" className="text-[#4682b4] text-xs pixel-perfect">Quest Description:</Label>
-                      <Textarea id="description" placeholder="Tell heroes about your quest..." rows={3} className="retro-border bg-[#ffffff] text-[#2d2d2d] border-[#87ceeb] mt-2 min-h-[80px] sm:min-h-[100px] text-sm" />
-                    </div>
-                    <div className="grid grid-cols-1 gap-4">
-                      <div>
-                        <Label htmlFor="date" className="text-[#4682b4] text-xs pixel-perfect">Date:</Label>
-                        <Input id="date" type="date" className="retro-border bg-[#ffffff] text-[#2d2d2d] border-[#87ceeb] mt-2 h-10 sm:h-12 text-sm" />
-                      </div>
-                      <div>
-                        <Label htmlFor="time" className="text-[#4682b4] text-xs pixel-perfect">Time:</Label>
-                        <Input id="time" type="time" className="retro-border bg-[#ffffff] text-[#2d2d2d] border-[#87ceeb] mt-2 h-10 sm:h-12 text-sm" />
-                      </div>
-                    </div>
-                    <div>
-                      <Label htmlFor="location" className="text-[#4682b4] text-xs pixel-perfect">Location:</Label>
-                      <Input id="location" placeholder="Where is the quest?" className="retro-border bg-[#ffffff] text-[#2d2d2d] border-[#87ceeb] mt-2 h-10 sm:h-12 text-sm" />
-                    </div>
-                    <div className="grid grid-cols-1 gap-4">
-                      <div>
-                        <Label htmlFor="category" className="text-[#4682b4] text-xs pixel-perfect">Quest Type:</Label>
-                        <Select>
-                          <SelectTrigger className="retro-border bg-[#ffffff] text-[#2d2d2d] border-[#87ceeb] mt-2 h-10 sm:h-12 text-sm">
-                            <SelectValue placeholder="Choose type" />
-                          </SelectTrigger>
-                          <SelectContent className="retro-border bg-[#e6e6fa] border-[#87ceeb]">
-                            {categories.slice(1).map(category => (
-                              <SelectItem key={category} value={category.toLowerCase()} className="text-[#2d2d2d] hover:bg-[#87ceeb] text-sm">
-                                {category}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div>
-                        <Label htmlFor="price" className="text-[#4682b4] text-xs pixel-perfect">Cost (Gold):</Label>
-                        <Input id="price" placeholder="e.g., Free, 20 Gold" className="retro-border bg-[#ffffff] text-[#2d2d2d] border-[#87ceeb] mt-2 h-10 sm:h-12 text-sm" />
-                      </div>
-                    </div>
-                    <div>
-                      <Label htmlFor="genderPreference" className="text-[#4682b4] text-xs pixel-perfect">Who can join?</Label>
-                      <Select>
-                        <SelectTrigger className="retro-border bg-[#ffffff] text-[#2d2d2d] border-[#87ceeb] mt-2 h-10 sm:h-12 text-sm">
-                          <SelectValue placeholder="Choose heroes" />
-                        </SelectTrigger>
-                        <SelectContent className="retro-border bg-[#e6e6fa] border-[#87ceeb]">
-                          <SelectItem value="all" className="text-[#2d2d2d] hover:bg-[#87ceeb] text-sm">All Heroes</SelectItem>
-                          <SelectItem value="women" className="text-[#2d2d2d] hover:bg-[#87ceeb] text-sm">Princesses Only</SelectItem>
-                          <SelectItem value="men" className="text-[#2d2d2d] hover:bg-[#87ceeb] text-sm">Knights Only</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div>
-                      <Label htmlFor="eventUrl" className="text-[#4682b4] text-xs pixel-perfect">Quest Link (Optional):</Label>
-                      <Input id="eventUrl" placeholder="https://..." className="retro-border bg-[#ffffff] text-[#2d2d2d] border-[#87ceeb] mt-2 h-10 sm:h-12 text-sm" />
-                    </div>
-                    <AuthGuard 
-                      action="create-quest"
-                      className="retro-button w-full h-12 sm:h-14 text-[#2d2d2d] bg-[#98fb98] border-[#32cd32] hover:bg-[#90ee90] transition-all duration-200 text-sm sm:text-base font-bold shadow-lg hover:shadow-xl transform hover:scale-[1.02] active:scale-[0.98]"
-                      onClick={() => setIsCreateDialogOpen(false)}
-                    >
-                      <span className="pixel-perfect">▶ CREATE QUEST ◀</span>
-                    </AuthGuard>
-                  </div>
-                </DialogContent>
-              </Dialog>
-            </div>
-
             {/* Quest Categories Section */}
             <div className="mb-8">
               <CategoryFilter 
@@ -512,14 +830,13 @@ function AppContent() {
                   <Sword className="h-16 w-16 sm:h-20 sm:w-20 text-[#87ceeb] mx-auto mb-4 pixel-perfect" />
                 </div>
                 <h3 className="text-[#ff6347] text-lg sm:text-xl mb-4 tracking-wide pixel-perfect">~ NO QUESTS FOUND ~</h3>
-                <p className="text-[#4682b4] text-sm sm:text-base mb-4 sm:mb-6 pixel-perfect">Try selecting a different category or create your own quest!</p>
-                <AuthGuard 
-                  action="create-quest"
+                <p className="text-[#4682b4] text-sm sm:text-base mb-4 sm:mb-6 pixel-perfect">Try selecting a different category or sign up to create your own quest!</p>
+                <Button
+                  onClick={() => showAuthModal('signup')}
                   className="retro-button px-4 sm:px-6 py-2 sm:py-3 text-sm bg-[#98fb98] border-[#32cd32] hover:bg-[#90ee90] transition-all duration-200 transform hover:scale-105 w-full sm:w-auto"
-                  onClick={() => setIsCreateDialogOpen(true)}
                 >
-                  <span className="pixel-perfect">CREATE QUEST</span>
-                </AuthGuard>
+                  <span className="pixel-perfect">SIGN UP TO CREATE QUESTS</span>
+                </Button>
               </div>
             )}
           </>

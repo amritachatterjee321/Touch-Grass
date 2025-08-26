@@ -40,9 +40,8 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({ currentPage,
           const isActive = currentPage === item.id;
           
           return (
-            <div className="relative flex-1 mx-1">
+            <div key={item.id} className="relative flex-1 mx-1">
               <Button
-                key={item.id}
                 onClick={() => onPageChange(item.id)}
                 className={`retro-button flex flex-col items-center gap-1 p-2 min-w-0 w-full transition-all duration-200 ${
                   isActive 

@@ -1,8 +1,7 @@
 import React from 'react';
-import { Bookmark, Trash2 } from 'lucide-react';
+import { Bookmark } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { EventCard } from '../EventCard';
-import { Button } from '../ui/button';
 
 // Import the Event interface from the main App
 interface Event {
@@ -19,6 +18,7 @@ interface Event {
   interested: number;
   genderPreference: 'all' | 'women' | 'men';
   eventUrl?: string;
+  imageUrl?: string;
 }
 
 export const SavedEvents: React.FC = () => {
@@ -39,7 +39,8 @@ export const SavedEvents: React.FC = () => {
       organizer: 'Sarah M.',
       interested: 3,
       genderPreference: 'women',
-      eventUrl: 'https://www.eventbrite.com/e/jazz-night-blue-note'
+      eventUrl: 'https://www.eventbrite.com/e/jazz-night-blue-note',
+      imageUrl: 'https://images.unsplash.com/photo-1511192336575-5a79af67a629?w=800&h=400&fit=crop'
     },
     {
       id: '2',
@@ -54,7 +55,8 @@ export const SavedEvents: React.FC = () => {
       organizer: 'Mike T.',
       interested: 8,
       genderPreference: 'all',
-      eventUrl: 'https://www.meetup.com/food-lovers-nyc/events/food-truck-festival'
+      eventUrl: 'https://www.meetup.com/food-lovers-nyc/events/food-truck-festival',
+      imageUrl: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=800&h=400&fit=crop'
     }
   ];
 
@@ -71,16 +73,69 @@ export const SavedEvents: React.FC = () => {
 
   if (!savedEvents || savedEvents.length === 0) {
     return (
-      <div className="lilac-event-box retro-border p-8 text-center">
-        <div className="retro-border bg-white/80 p-6 inline-block mb-6">
-          <Bookmark className="h-16 w-16 text-[#87ceeb] mx-auto mb-4 pixel-perfect" />
+      <div className="space-y-6">
+        <div className="text-center mb-6">
+          <h2 className="text-[#ff6347] text-xl sm:text-2xl mb-2 pixel-perfect">
+            ~ YOUR SAVED QUESTS ~
+          </h2>
+          <p className="text-[#4682b4] text-sm pixel-perfect">
+            0 quests saved
+          </p>
         </div>
-        <h3 className="text-[#ff6347] text-lg sm:text-xl mb-4 tracking-wide pixel-perfect">
-          ~ NO SAVED QUESTS ~
-        </h3>
-        <p className="text-[#4682b4] text-sm sm:text-base mb-6 pixel-perfect">
-          You haven't saved any quests yet. Start exploring and save the ones that interest you!
-        </p>
+
+        {/* Touch Grass Counter Section */}
+        <div className="retro-border bg-gradient-to-br from-green-200 to-emerald-200 border-green-400 p-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="text-center">
+              <div className="bg-gradient-to-br from-green-100 to-emerald-100 border-green-300 border-2 p-3 rounded">
+                <div className="text-green-800 text-2xl font-bold pixel-perfect mb-1">
+                  {user.questsJoined || 0}
+                </div>
+                <div className="text-green-700 text-xs pixel-perfect">
+                  QUESTS JOINED
+                </div>
+                <div className="text-green-700 text-xs pixel-perfect">
+                  THIS YEAR
+                </div>
+              </div>
+            </div>
+            <div className="text-center">
+              <div className="bg-gradient-to-br from-green-100 to-emerald-100 border-green-300 border-2 p-3 rounded">
+                <div className="text-green-800 text-2xl font-bold pixel-perfect mb-1">
+                  {user.questsCreated || 0}
+                </div>
+                <div className="text-green-700 text-xs pixel-perfect">
+                  QUESTS CREATED
+                </div>
+                <div className="text-green-700 text-xs pixel-perfect">
+                  THIS YEAR
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="text-center mt-3">
+            <p className="text-green-700 text-xs pixel-perfect">
+              {(user.questsJoined || 0) === 0 && (user.questsCreated || 0) === 0 
+                ? "Time to go on your first quest, hero! 🌿" 
+                : (user.questsJoined || 0) > 5 || (user.questsCreated || 0) > 3
+                ? "Keep up the good work, hero! 🌿"
+                : "Keep touching grass, hero! 🌿"
+              }
+            </p>
+          </div>
+        </div>
+
+        <div className="lilac-event-box retro-border p-8 text-center">
+          <div className="retro-border bg-white/80 p-6 inline-block mb-6">
+            <Bookmark className="h-16 w-16 text-[#87ceeb] mx-auto mb-4 pixel-perfect" />
+          </div>
+          <h3 className="text-[#ff6347] text-lg sm:text-xl mb-4 tracking-wide pixel-perfect">
+            ~ NO SAVED QUESTS ~
+          </h3>
+          <p className="text-[#4682b4] text-sm sm:text-base mb-6 pixel-perfect">
+            You haven't saved any quests yet. Start exploring and save the ones that interest you!
+          </p>
+        </div>
       </div>
     );
   }
@@ -96,24 +151,58 @@ export const SavedEvents: React.FC = () => {
         </p>
       </div>
 
+              {/* Touch Grass Counter Section */}
+        <div className="retro-border bg-gradient-to-br from-green-200 to-emerald-200 border-green-400 p-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="text-center">
+              <div className="bg-gradient-to-br from-green-100 to-emerald-100 border-green-300 border-2 p-3 rounded">
+                <div className="text-green-800 text-2xl font-bold pixel-perfect mb-1">
+                  {user.questsJoined || 0}
+                </div>
+                <div className="text-green-700 text-xs pixel-perfect">
+                  QUESTS JOINED
+                </div>
+                <div className="text-green-700 text-xs pixel-perfect">
+                  THIS YEAR
+                </div>
+              </div>
+            </div>
+            <div className="text-center">
+              <div className="bg-gradient-to-br from-green-100 to-emerald-100 border-green-300 border-2 p-3 rounded">
+                <div className="text-green-800 text-2xl font-bold pixel-perfect mb-1">
+                  {user.questsCreated || 0}
+                </div>
+                <div className="text-green-700 text-xs pixel-perfect">
+                  QUESTS CREATED
+                </div>
+                <div className="text-green-700 text-xs pixel-perfect">
+                  THIS YEAR
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="text-center mt-3">
+            <p className="text-green-700 text-xs pixel-perfect">
+              {(user.questsJoined || 0) === 0 && (user.questsCreated || 0) === 0 
+                ? "Time to go on your first quest, hero! 🌿" 
+                : (user.questsJoined || 0) > 5 || (user.questsCreated || 0) > 3
+                ? "Keep up the good work, hero! 🌿"
+                : "Keep touching grass, hero! 🌿"
+              }
+            </p>
+          </div>
+        </div>
+
       <div className="grid gap-6">
         {savedEventObjects.map((event) => (
-          <div key={event.id} className="relative">
-            <EventCard
-              event={event}
-              isInterested={false}
-              isSaved={true}
-              onToggleInterest={() => {}}
-              onToggleSaved={() => unsaveEvent(event.id)}
-            />
-            <Button
-              onClick={() => unsaveEvent(event.id)}
-              className="absolute top-2 right-2 retro-button p-2 text-[#ff6347] bg-[#ffe6e6] border-[#ff6347] hover:bg-[#ffd6d6] transition-all duration-200"
-              title="Remove from saved"
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
-          </div>
+          <EventCard
+            key={event.id}
+            event={event}
+            isInterested={false}
+            isSaved={true}
+            onToggleInterest={() => {}}
+            onToggleSaved={() => unsaveEvent(event.id)}
+          />
         ))}
       </div>
     </div>

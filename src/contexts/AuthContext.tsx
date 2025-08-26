@@ -14,6 +14,12 @@ interface User {
   bio?: string;
   personalityType?: string;
   profileComplete?: boolean;
+  // Quest counters
+  questsJoined?: number;
+  questsCreated?: number;
+  // Monthly goals
+  monthlyQuestsJoinedGoal?: number;
+  monthlyQuestsCreatedGoal?: number;
 }
 
 interface AuthContextType {

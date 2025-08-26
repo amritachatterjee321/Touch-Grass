@@ -5,7 +5,7 @@ interface AuthGuardProps {
   children: React.ReactNode;
   action: string;
   className?: string;
-  onClick?: () => void;
+  onClick?: (e?: React.MouseEvent) => void;
   disabled?: boolean;
   type?: 'button' | 'submit';
   title?: string;
@@ -42,7 +42,7 @@ export const AuthGuard = React.forwardRef<HTMLButtonElement, AuthGuardProps>(({
 
     // If user is authenticated and onClick is provided, call it
     if (onClick) {
-      onClick();
+      onClick(e);
     }
   };
 

@@ -266,7 +266,7 @@ export const Chats: React.FC = () => {
                 value={newMessage}
                 onChange={(e) => setNewMessage(e.target.value)}
                 placeholder="Type your message..."
-                className="flex-1 retro-border bg-white border-[#87ceeb]"
+                className="flex-1 retro-border bg-white border-[#87ceeb] text-base leading-relaxed min-h-[48px] px-4 py-3"
                 onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
               />
               <Button

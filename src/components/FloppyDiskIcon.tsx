@@ -20,7 +20,7 @@ export const FloppyDiskIcon: React.FC<FloppyDiskIconProps> = ({ className = '', 
         y="2" 
         width="16" 
         height="16" 
-        fill={filled ? '#f0e68c' : '#87ceeb'}
+        fill={filled ? '#ff6347' : '#4682b4'}
         stroke="#2d2d2d" 
         strokeWidth="1"
       />
@@ -42,7 +42,7 @@ export const FloppyDiskIcon: React.FC<FloppyDiskIconProps> = ({ className = '', 
         y="9" 
         width="10" 
         height="6" 
-        fill={filled ? '#ffffe0' : '#f0f8ff'}
+        fill={filled ? '#ffffff' : '#f0f8ff'}
         stroke="#2d2d2d" 
         strokeWidth="1"
       />

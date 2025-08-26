@@ -250,9 +250,9 @@
     }
 
     input {
-      font-size: 10px;
+      font-size: 14px;
       font-weight: 400;
-      line-height: 1.8;
+      line-height: 1.4;
       font-family: 'Press Start 2P', monospace;
     }
   }
@@ -486,6 +486,15 @@ input:focus, textarea:focus, select:focus {
   outline: 3px solid var(--retro-red);
   outline-offset: 2px;
   border-color: var(--retro-red);
+}
+
+/* Improved input text readability */
+input, textarea {
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: "kern" 1;
+  font-kerning: normal;
 }
 
 /* Enhanced loading states */
