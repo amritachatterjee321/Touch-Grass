@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { MapPin, Users, User, Star, Sword, X, Calendar } from 'lucide-react';
-import { FloppyDiskIcon } from './FloppyDiskIcon';
+import { MapPin, Users, User, Star, Sword, X, Calendar, Pin, Edit } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
 import { AuthGuard } from './AuthGuard';
 
 interface Event {
@@ -37,6 +37,28 @@ export const EventCard: React.FC<EventCardProps> = ({
 }) => {
   const [showAnimation, setShowAnimation] = useState(false);
   const [showSaveMessage, setShowSaveMessage] = useState(false);
+  const { user } = useAuth();
+  const isOwnEvent = !!user && (user.name === event.organizer);
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [editData, setEditData] = useState({
+    title: event.title,
+    description: event.description,
+    date: event.date,
+    time: event.time,
+    location: event.location,
+    price: event.price
+  });
+
+  const openEditModal = () => setIsEditOpen(true);
+  const closeEditModal = () => setIsEditOpen(false);
+  const handleEditSave = () => {
+    console.log('Edited event data:', { id: event.id, ...editData });
+    setIsEditOpen(false);
+  };
+  const handleDelete = () => {
+    console.log('Delete event requested:', event.id);
+    setIsEditOpen(false);
+  };
 
   const handleJoinQuest = (e?: React.MouseEvent) => {
     if (!isInterested) {
@@ -101,6 +123,7 @@ export const EventCard: React.FC<EventCardProps> = ({
   };
 
   return (
+    <>
     <article 
       className="lilac-event-box retro-border transform hover:scale-[1.02] transition-all duration-200 hover:shadow-xl relative"
       aria-labelledby={`event-title-${event.id}`}
@@ -130,7 +153,7 @@ export const EventCard: React.FC<EventCardProps> = ({
           </div>
         </div>
       )}
-      <div className="p-3 sm:p-4">
+      <div className="p-4 sm:p-5">
         {/* Event Image */}
         {event.imageUrl && (
           <div className="mb-3 sm:mb-4">
@@ -138,7 +161,7 @@ export const EventCard: React.FC<EventCardProps> = ({
               <img
                 src={event.imageUrl}
                 alt={`${event.title} event`}
-                className="w-full h-48 sm:h-56 object-cover"
+                className="w-full h-56 sm:h-60 object-cover"
                 loading="lazy"
               />
             </div>
@@ -170,7 +193,7 @@ export const EventCard: React.FC<EventCardProps> = ({
                 </h3>
 
               </div>
-              <div className="flex items-center gap-2 text-[#666666] text-xs sm:text-sm mb-2">
+              <div className="flex items-center gap-2 text-[#666666] text-sm sm:text-base mb-2">
                 <Calendar className="h-3 w-3 sm:h-4 sm:w-4" aria-hidden="true" />
                 <span className="font-normal">
                   <time dateTime={`${event.date} ${event.time}`}>
@@ -183,7 +206,7 @@ export const EventCard: React.FC<EventCardProps> = ({
                   ✓ Event saved to your account!
                 </div>
               )}
-              <div className="flex items-center gap-2 text-[#666666] text-xs sm:text-sm">
+              <div className="flex items-center gap-2 text-[#666666] text-sm sm:text-base">
                 <MapPin className="h-3 w-3 sm:h-4 sm:w-4" aria-hidden="true" />
                 <span className="font-normal">{event.location}</span>
               </div>
@@ -197,16 +220,15 @@ export const EventCard: React.FC<EventCardProps> = ({
                     ? 'text-[#ff6347] bg-[#ffe6e6] hover:bg-[#ffd6d6]' 
                     : 'text-[#4682b4] hover:text-[#ff6347] hover:bg-[#f0f8ff]'
                 }`}
-                onClick={handleSaveEvent}
-                title={isSaved ? "Remove from saved" : "Save quest"}
+                onClick={isOwnEvent ? openEditModal : handleSaveEvent}
+                title={isOwnEvent ? "Edit your quest" : (isSaved ? "Remove from saved" : "Save quest")}
               >
-                {isSaved ? (
+                {isOwnEvent ? (
+                  <Edit className="h-5 w-5 sm:h-6 sm:w-6 pixel-perfect" />
+                ) : isSaved ? (
                   <X className="h-5 w-5 sm:h-6 sm:w-6 pixel-perfect" />
                 ) : (
-                  <FloppyDiskIcon 
-                    className={`h-5 w-5 sm:h-6 sm:w-6 pixel-perfect`} 
-                    filled={false}
-                  />
+                  <Pin className="h-5 w-5 sm:h-6 sm:w-6 pixel-perfect" />
                 )}
               </AuthGuard>
             </div>
@@ -214,10 +236,10 @@ export const EventCard: React.FC<EventCardProps> = ({
         </div>
 
         {/* Event Description - Nested box */}
-        <div className="retro-border bg-white/80 p-3 sm:p-4 mb-3 sm:mb-4">
+        <div className="retro-border bg-white/80 p-4 sm:p-5 mb-3 sm:mb-4">
           <p 
             id={`event-description-${event.id}`}
-            className="text-[#2d2d2d] text-xs sm:text-sm leading-relaxed pixel-perfect"
+            className="text-[#2d2d2d] text-sm sm:text-base leading-relaxed pixel-perfect"
             style={{ 
               fontFamily: "'Press Start 2P', monospace",
               lineHeight: '1.8',
@@ -278,7 +300,7 @@ export const EventCard: React.FC<EventCardProps> = ({
         <div className="hidden sm:grid grid-cols-1 gap-4 mb-3 sm:mb-4">
           {/* Quest Details */}
           <div className="space-y-2 sm:space-y-3">
-            <div className="flex items-center gap-2 text-[#9370db] text-xs sm:text-sm">
+            <div className="flex items-center gap-2 text-[#9370db] text-sm sm:text-base">
               <Sword className="h-3 w-3 sm:h-4 sm:w-4" />
               <span className="font-semibold">Quest Master:</span> 
               <span className="font-normal">{event.organizer}</span>
@@ -339,7 +361,7 @@ export const EventCard: React.FC<EventCardProps> = ({
         {/* Bottom Section: Join Status */}
         <div className="mb-3 sm:mb-4">
           {isInterested && (
-            <div className="flex items-center gap-1 text-[#ffa500] text-xs sm:text-sm">
+            <div className="flex items-center gap-1 text-[#ffa500] text-sm sm:text-base">
               <Star className="h-3 w-3 sm:h-4 sm:w-4 fill-current" />
               <span className="pixel-perfect">Request Pending...</span>
             </div>
@@ -347,5 +369,76 @@ export const EventCard: React.FC<EventCardProps> = ({
         </div>
       </div>
     </article>
+    {/* Edit Event Modal */}
+    {isEditOpen && (
+      <div className="fixed inset-0 z-50 flex items-center justify-center">
+        <div className="absolute inset-0 bg-black/50" onClick={closeEditModal} />
+        <div className="relative retro-border bg-[#f0f8ff] border-[#87ceeb] p-4 w-[90%] max-w-md z-10">
+          <h3 className="text-[#ff6347] text-lg mb-3 pixel-perfect">~ EDIT QUEST ~</h3>
+          <div className="space-y-3">
+            <div>
+              <label className="text-[#4682b4] text-xs pixel-perfect">Quest Name</label>
+              <input
+                className="w-full retro-border bg-white border-[#87ceeb] mt-1 p-2 text-sm"
+                value={editData.title}
+                onChange={(e) => setEditData({ ...editData, title: e.target.value })}
+              />
+            </div>
+            <div>
+              <label className="text-[#4682b4] text-xs pixel-perfect">Description</label>
+              <textarea
+                className="w-full retro-border bg-white border-[#87ceeb] mt-1 p-2 text-sm h-24 resize-none"
+                value={editData.description}
+                onChange={(e) => setEditData({ ...editData, description: e.target.value })}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <label className="text-[#4682b4] text-xs pixel-perfect">Date</label>
+                <input
+                  type="text"
+                  className="w-full retro-border bg-white border-[#87ceeb] mt-1 p-2 text-sm"
+                  value={editData.date}
+                  onChange={(e) => setEditData({ ...editData, date: e.target.value })}
+                />
+              </div>
+              <div>
+                <label className="text-[#4682b4] text-xs pixel-perfect">Time</label>
+                <input
+                  type="text"
+                  className="w-full retro-border bg-white border-[#87ceeb] mt-1 p-2 text-sm"
+                  value={editData.time}
+                  onChange={(e) => setEditData({ ...editData, time: e.target.value })}
+                />
+              </div>
+            </div>
+            <div>
+              <label className="text-[#4682b4] text-xs pixel-perfect">Location</label>
+              <input
+                className="w-full retro-border bg-white border-[#87ceeb] mt-1 p-2 text-sm"
+                value={editData.location}
+                onChange={(e) => setEditData({ ...editData, location: e.target.value })}
+              />
+            </div>
+            <div>
+              <label className="text-[#4682b4] text-xs pixel-perfect">Cost</label>
+              <input
+                className="w-full retro-border bg-white border-[#87ceeb] mt-1 p-2 text-sm"
+                value={editData.price}
+                onChange={(e) => setEditData({ ...editData, price: e.target.value })}
+              />
+            </div>
+          </div>
+          <div className="flex justify-between items-center gap-2 mt-4">
+            <button onClick={handleDelete} className="retro-button px-3 py-2 bg-[#ffd6d6] border-[#ff4d4f] text-[#2d2d2d]">DELETE QUEST</button>
+            <div className="flex gap-2">
+              <button onClick={closeEditModal} className="retro-button px-3 py-2 bg-[#ffe6e6] border-[#ff6347] text-[#2d2d2d]">CANCEL</button>
+              <button onClick={handleEditSave} className="retro-button px-3 py-2 bg-[#98fb98] border-[#32cd32] text-[#2d2d2d]">SAVE</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    )}
+    </>
   );
 };
