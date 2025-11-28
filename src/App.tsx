@@ -1,868 +1,709 @@
-import { useState } from 'react';
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogHeader, 
-  DialogTitle, 
-  DialogTrigger,
-  Input,
-  Label,
-  Textarea,
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-  Button
-} from './components/ui';
-import { Gamepad2, Sword, User, CheckCircle } from 'lucide-react';
-import { EventCard } from './components/EventCard';
-import { CategoryFilter } from './components/CategoryFilter';
-import { AuthProvider, useAuth } from './contexts/AuthContext';
-import { AuthModal } from './components/AuthModal';
-import { UserProfile } from './components/UserProfile';
-import { AuthGuard } from './components/AuthGuard';
-import { NavigationMenu } from './components/NavigationMenu';
-import { MobileNavigation } from './components/MobileNavigation';
-import { SavedEvents } from './components/pages/SavedEvents';
-import { Chats } from './components/pages/Chats';
-import { Profile } from './components/pages/Profile';
-import { Settings } from './components/pages/Settings';
-import { useIsMobile } from './components/ui/use-mobile';
-import { useUnreadMessages } from './hooks/useUnreadMessages';
-import { ImageUpload } from './components/ImageUpload';
+import { useState, useEffect } from "react"
+import { Plus } from "lucide-react"
+import { GameHeader } from "./components/GameHeader"
+import { QuestBoard } from "./components/QuestBoard"
+import { MyQuests } from "./components/MyQuests"  
+import { Chats } from "./components/Chats"
+import { ChatScreen } from "./components/ChatScreen"
+import { ProfileScreen } from "./components/ProfileScreen"
+import { ProfileCreationScreen } from "./components/ProfileCreationScreen"
+import { NotificationScreen } from "./components/NotificationScreen"
+import { SettingsScreen } from "./components/SettingsScreen"
+import { ChatDebugger } from "./components/ChatDebugger"
+import { PopulateChatData } from "./components/PopulateChatData"
+import { QuestCreationScreen } from "./components/QuestCreationScreen"
+import { QuestFeedbackScreen } from "./components/QuestFeedbackScreen"
+import { QuestApprovalScreen } from "./components/QuestApprovalScreen"
+import { FAQScreen } from "./components/FAQScreen"
+import { ContactSupportScreen } from "./components/ContactSupportScreen"
+import { ReportBugScreen } from "./components/ReportBugScreen"
+import { PrivacyPolicyScreen } from "./components/PrivacyPolicyScreen"
+import { TermsOfServiceScreen } from "./components/TermsOfServiceScreen"
+import { GoogleLoginModal } from "./components/GoogleLoginModal"
+import { BottomNavigation } from "./components/BottomNavigation"
+import { Toaster } from "sonner"
+import { FirebaseProvider, useFirebase } from "./contexts/FirebaseContext"
+import { signInWithGoogle, signOutUser } from "./firebase/auth"
+import { getUserProfile, createUserProfile } from "./firebase/users"
+import { toast } from "sonner"
 
-// Add custom styles for form consistency
-const formStyles = `
-  .form-input, .form-textarea, .form-select {
-    font-size: 12px !important;
-    font-weight: normal !important;
-    font-family: 'Press Start 2P', monospace !important;
-    line-height: 1.4 !important;
-  }
-  
-  .form-input::placeholder, .form-textarea::placeholder {
-    font-size: 10px !important;
-    font-weight: normal !important;
-    color: #9ca3af !important;
-  }
-  
-  .form-select option {
-    font-size: 12px !important;
-    font-weight: normal !important;
-  }
-  
-  /* Ensure all select options are not bold */
-  select option {
-    font-weight: normal !important;
-    font-size: 12px !important;
-  }
-  
-  /* Ensure all select elements have consistent text size */
-  select {
-    font-size: 10px !important;
-    font-weight: normal !important;
-    font-family: 'Press Start 2P', monospace !important;
-  }
-  
-  /* Ensure placeholder text in all inputs is small */
-  input::placeholder, textarea::placeholder {
-    font-size: 10px !important;
-    font-weight: normal !important;
-    color: #9ca3af !important;
-  }
-  
-  /* Ensure date and time inputs work properly */
-  input[type="date"], input[type="time"] {
-    font-size: 12px !important;
-    font-weight: normal !important;
-    font-family: 'Press Start 2P', monospace !important;
-    line-height: 1.4 !important;
-    color: #2d2d2d !important;
-    background: #ffffff !important;
-    border: 4px solid #87ceeb !important;
-    border-style: outset !important;
-    padding: 8px 12px !important;
-    border-radius: 0 !important;
-    cursor: pointer !important;
-    position: relative !important;
-    z-index: 10 !important;
-  }
-  
-  input[type="date"]::-webkit-calendar-picker-indicator,
-  input[type="time"]::-webkit-calendar-picker-indicator {
-    cursor: pointer !important;
-    filter: invert(0.5) !important;
-    position: relative !important;
-    z-index: 20 !important;
-  }
-  
-  input[type="date"]:focus, input[type="time"]:focus {
-    outline: 3px solid #ff6347 !important;
-    outline-offset: 2px !important;
-    border-color: #ff6347 !important;
-    z-index: 30 !important;
-  }
-  
-  /* Ensure the date/time picker popup appears above other elements */
-  input[type="date"]::-webkit-datetime-edit,
-  input[type="time"]::-webkit-datetime-edit {
-    color: #2d2d2d !important;
-    font-size: 12px !important;
-    font-weight: normal !important;
-  }
-  
-  /* Ensure date picker popup appears above modal */
-  input[type="date"]::-webkit-calendar-picker-indicator {
-    z-index: 1000 !important;
-  }
-  
-  /* Override any modal z-index issues */
-  .DialogContent {
-    z-index: 50 !important;
-  }
-  
-  input[type="date"] {
-    z-index: 100 !important;
-  }
-`;
+type ActiveScreen = 'board' | 'my-quests' | 'chats' | 'chat-detail' | 'profile' | 'create-quest' | 'profile-creation' | 'notifications' | 'settings' | 'chat-debug' | 'populate-data' | 'quest-feedback' | 'quest-approval' | 'faq' | 'contact-support' | 'report-bug' | 'privacy-policy' | 'terms-of-service'
 
-
-interface Event {
-  id: string;
-  title: string;
-  description: string;
-  date: string;
-  time: string;
-  location: string;
-  category: string;
-  type: string;
-  price: string;
-  organizer: string;
-  interested: number;
-  genderPreference: 'all' | 'women' | 'men';
-  eventUrl?: string;
-  imageUrl?: string;
-}
-
-
-
-const categories = ['All', 'Music', 'Sports', 'Food', 'Outdoor', 'Arts', 'Social', 'Learning'];
-
-const mockEvents: Event[] = [
-  {
-    id: '1',
-    title: 'Jazz Night at Blue Note',
-    description: "I'm new to the city and love jazz music. Would be great to meet fellow music lovers! Looking for 1-2 people to join me for this amazing night out.",
-    date: 'Tonight',
-    time: '8:00 PM',
-    location: 'Downtown',
-    category: 'Music',
-    type: '1-on-1',
-    price: 'Free',
-    organizer: 'Sarah M.',
-    interested: 3,
-    genderPreference: 'women',
-    eventUrl: 'https://www.eventbrite.com/e/jazz-night-blue-note',
-    imageUrl: 'https://images.unsplash.com/photo-1511192336575-5a79af67a629?w=800&h=400&fit=crop'
-  },
-  {
-    id: '2',
-    title: 'Food Truck Festival',
-    description: "Love trying new foods but hate going alone! Join me for an afternoon of amazing food trucks and good vibes. Let's discover some hidden gems together!",
-    date: 'Saturday',
-    time: '12:00 PM',
-    location: 'Central Park',
-    category: 'Food',
-    type: 'Group',
-    price: '15-25 Gold',
-    organizer: 'Mike T.',
-    interested: 8,
-    genderPreference: 'all',
-    eventUrl: 'https://www.meetup.com/food-lovers-nyc/events/food-truck-festival',
-    imageUrl: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=800&h=400&fit=crop'
-  },
-  {
-    id: '3',
-    title: 'Morning Hiking Trail',
-    description: "Early bird looking for hiking companions! Beautiful 5-mile trail with amazing city views. Perfect for intermediate hikers who love sunrise adventures.",
-    date: 'Sunday',
-    time: '6:30 AM',
-    location: 'Mountain View Trail',
-    category: 'Outdoor',
-    type: 'Group',
-    price: 'Free',
-    organizer: 'Alex K.',
-    interested: 5,
-    genderPreference: 'all',
-    imageUrl: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=400&fit=crop'
-  },
-  {
-    id: '4',
-    title: 'Art Museum Exhibition',
-    description: "Contemporary art enthusiast seeking culture buddies! New exhibition opening this week. Great opportunity to discuss art and grab coffee afterward.",
-    date: 'Friday',
-    time: '2:00 PM',
-    location: 'Metropolitan Museum',
-    category: 'Arts',
-    type: 'Small Group',
-    price: '25 Gold',
-    organizer: 'Emma L.',
-    interested: 4,
-    genderPreference: 'women',
-    eventUrl: 'https://www.facebook.com/events/contemporary-art-exhibition',
-    imageUrl: 'https://images.unsplash.com/photo-1541961017774-22349e4a1262?w=800&h=400&fit=crop'
-  },
-  {
-    id: '5',
-    title: 'Pickup Basketball Game',
-    description: "Weekly basketball game needs more players! All skill levels welcome. We play for fun and fitness. Great way to stay active and meet new people.",
-    date: 'Wednesday',
-    time: '7:00 PM',
-    location: 'Community Center',
-    category: 'Sports',
-    type: 'Group',
-    price: 'Free',
-    organizer: 'Jordan P.',
-    interested: 12,
-    genderPreference: 'men',
-    eventUrl: 'https://www.meetup.com/basketball-pickup-games',
-    imageUrl: 'https://images.unsplash.com/photo-1546519638-68e109498ffc?w=800&h=400&fit=crop'
-  }
-];
-
+// Firebase-powered main app component
 function AppContent() {
-  const { saveEvent, unsaveEvent, isEventSaved, user, showAuthModal } = useAuth();
-  const [selectedCategory, setSelectedCategory] = useState('All');
-  const [events, setEvents] = useState<Event[]>(mockEvents);
-  const [interestedEvents, setInterestedEvents] = useState<Set<string>>(new Set());
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const [currentPage, setCurrentPage] = useState('quests');
-  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const { user, quests } = useFirebase()
+  const [activeScreen, setActiveScreen] = useState<ActiveScreen>('board')
+  const [questToEdit, setQuestToEdit] = useState<any>(null)
+  const [activeChatId, setActiveChatId] = useState<string | null>(null)
+  const [activeChatTitle, setActiveChatTitle] = useState<string>('')
+  const [questFeedbackTitle, setQuestFeedbackTitle] = useState<string>('')
+  const [questFeedbackId, setQuestFeedbackId] = useState<string>('')
+  const [selectedJoinRequest, setSelectedJoinRequest] = useState<any>(null)
+  const [isProfileCompleted, setIsProfileCompleted] = useState(false) // Start with incomplete profile
+  const [isLoggedIn, setIsLoggedIn] = useState(false) // Track login state
+  const [isGoogleLoginModalOpen, setIsGoogleLoginModalOpen] = useState(false)
+  const [pendingQuestCreation, setPendingQuestCreation] = useState(false) // Track if quest creation was requested before login
+  const [existingProfileData, setExistingProfileData] = useState<any>(null)
+  const [isEditingProfile, setIsEditingProfile] = useState(false)
+  const [userProfile, setUserProfile] = useState<any>(null)
+  const [badgesRefreshTrigger, setBadgesRefreshTrigger] = useState(0)
   
-  // Form state for creating new events
-  const [formData, setFormData] = useState({
-    title: '',
-    description: '',
-    date: '',
-    time: '',
-    location: '',
-    price: 'Free',
-    eventUrl: ''
-  });
-
-  const isMobile = useIsMobile();
-  const { getTotalUnreadCount } = useUnreadMessages();
-
-
-  const filteredEvents = events.filter(event => {
-    return selectedCategory === 'All' || event.category === selectedCategory;
-  });
-
-  const toggleInterest = (eventId: string) => {
-    const newInterestedEvents = new Set(interestedEvents);
-    if (newInterestedEvents.has(eventId)) {
-      newInterestedEvents.delete(eventId);
-      setEvents(events.map(event => 
-        event.id === eventId 
-          ? { ...event, interested: event.interested - 1 }
-          : event
-      ));
+  // Update login state when Firebase user changes
+  useEffect(() => {
+    console.log('🔥 User state changed:', user ? `User logged in: ${user.email}` : 'No user')
+    setIsLoggedIn(!!user)
+    
+    // Check profile completion when user logs in
+    if (user) {
+      checkUserProfileCompletion().then(() => {
+        console.log('✅ Profile completion check finished')
+      })
     } else {
-      newInterestedEvents.add(eventId);
-      setEvents(events.map(event => 
-        event.id === eventId 
-          ? { ...event, interested: event.interested + 1 }
-          : event
-      ));
+      setIsProfileCompleted(false)
+      setUserProfile(null)
     }
-    setInterestedEvents(newInterestedEvents);
-  };
+  }, [user])
 
-  const toggleSaved = (eventId: string) => {
-    if (isEventSaved(eventId)) {
-      unsaveEvent(eventId);
+  // Check if user has completed their profile
+  const checkUserProfileCompletion = async () => {
+    if (!user) {
+      setIsProfileCompleted(false)
+      setUserProfile(null)
+      return false
+    }
+
+    try {
+      const profile = await getUserProfile(user.uid)
+      if (profile && profile.isProfileCompleted) {
+        setIsProfileCompleted(true)
+        setUserProfile(profile) // Store the full profile including savedQuests
+        console.log('✅ User profile is completed')
+        return true
+      } else {
+        setIsProfileCompleted(false)
+        setUserProfile(profile) // Store profile even if incomplete
+        console.log('⚠️ User profile needs completion')
+        return false
+      }
+    } catch (error) {
+      console.error('❌ Error checking user profile completion:', error)
+      setIsProfileCompleted(false)
+      setUserProfile(null)
+      return false
+    }
+  }
+
+  const handleNavigation = (tab: 'board' | 'my-quests' | 'chats' | 'profile') => {
+    setActiveScreen(tab)
+    setQuestToEdit(null) // Clear edit mode when navigating
+    setActiveChatId(null) // Clear chat when navigating
+  }
+
+  const handleOpenNotifications = () => {
+    setActiveScreen('notifications')
+  }
+
+  const handleOpenSettings = () => {
+    setActiveScreen('settings')
+  }
+
+  const handleOpenChatDebug = () => {
+    setActiveScreen('chat-debug')
+  }
+
+  const handleOpenPopulateData = () => {
+    setActiveScreen('populate-data')
+  }
+
+  const handleEditQuest = (quest: any) => {
+    setQuestToEdit(quest)
+    setActiveScreen('create-quest')
+  }
+
+  const handleCreateQuest = () => {
+    if (!user) {
+      // User not logged in, show Google login modal for quest creation
+      setPendingQuestCreation(true) 
+      setIsGoogleLoginModalOpen(true)
+      setActiveScreen('create-quest') // Navigate to create quest but show login modal
+      return
+    }
+    // User is logged in, proceed to quest creation
+    setQuestToEdit(null)
+    setActiveScreen('create-quest')
+  }
+
+  const handleDiscardQuest = () => {
+    if (questToEdit) {
+      // If editing, go back to my-quests
+      setActiveScreen('my-quests')
     } else {
-      saveEvent(eventId);
+      // If creating new quest, go back to board
+      setActiveScreen('board')
     }
-  };
+    setQuestToEdit(null)
+  }
 
-  const handleCreateEvent = (e?: React.MouseEvent) => {
-    // Validate required fields
-    if (!formData.title.trim() || !formData.description.trim() || !formData.date || !formData.time || !formData.location.trim()) {
-      alert('Please fill in all required fields: Quest Name, Description, Date, Time, and Location');
-      return;
+  const handleQuestSaved = (questData: any) => {
+    // Handle deletion case (null data)
+    if (questData === null) {
+      console.log('🗑️ Quest deleted by user')
+      // Navigate to appropriate screen after deletion
+      setActiveScreen('my-quests')
+      setQuestToEdit(null)
+      return
     }
 
-    const createEvent = (imageUrl?: string) => {
-      const newEvent: Event = {
-        id: Date.now().toString(),
-        title: formData.title,
-        description: formData.description,
-        date: formData.date,
-        time: formData.time,
-        location: formData.location,
-        category: 'Social', // Default category
-        type: 'Group',
-        price: formData.price || 'Free',
-        organizer: user?.name || 'Anonymous',
-        interested: 0,
-        genderPreference: 'all', // Default to all heroes
-        eventUrl: formData.eventUrl || undefined,
-        imageUrl: imageUrl
-      };
+    console.log('✅ Quest operation completed:', questData)
+    
+    // Navigate to appropriate screen after success
+    if (questToEdit) {
+      setActiveScreen('my-quests')
+    } else {
+      setActiveScreen('board')
+    }
+    setQuestToEdit(null)
+  }
+
+  const handleOpenChat = (chatId: string, questTitle: string) => {
+    setActiveChatId(chatId)
+    setActiveChatTitle(questTitle)
+    setActiveScreen('chat-detail')
+  }
+
+  const handleBackToChats = () => {
+    setActiveScreen('chats')
+    setActiveChatId(null)
+    setActiveChatTitle('')
+  }
+
+  const handleLeaveChat = () => {
+    // Navigate back to chats and clear chat state
+    setActiveScreen('chats')
+    setActiveChatId(null)
+    setActiveChatTitle('')
+  }
+
+  const handleOpenQuestFeedback = (questTitle: string, questId: string) => {
+    setQuestFeedbackTitle(questTitle)
+    setQuestFeedbackId(questId)
+    setActiveScreen('quest-feedback')
+  }
+
+  const handleBackFromQuestFeedback = () => {
+    setActiveScreen('my-quests')
+    setQuestFeedbackTitle('')
+    setQuestFeedbackId('')
+  }
+
+  const handleSubmitQuestFeedback = (feedback: any) => {
+    console.log('Quest feedback submitted:', feedback)
+    toast.success('Feedback submitted successfully! 🎉')
+    // Trigger badge refresh in MyQuests component
+    setBadgesRefreshTrigger(prev => prev + 1)
+    // Navigate back to my-quests after feedback submission
+    setActiveScreen('my-quests')
+    setQuestFeedbackTitle('')
+  }
+
+  const handleViewJoinRequest = (request: any) => {
+    setSelectedJoinRequest(request)
+    setActiveScreen('quest-approval')
+  }
+
+  const handleApproveJoinRequest = (requestId: string) => {
+    console.log('Approving join request:', requestId)
+    toast.success('Request approved! 🎉')
+    setActiveScreen('my-quests')
+    setSelectedJoinRequest(null)
+  }
+
+  const handleRejectJoinRequest = (requestId: string) => {
+    console.log('Rejecting join request:', requestId)
+    toast.success('Request declined')
+    setActiveScreen('my-quests')
+    setSelectedJoinRequest(null)
+  }
+
+  const handleProfileComplete = async (profileData: any) => {
+    try {
+      console.log('Profile created:', profileData)
       
-      setEvents([newEvent, ...events]);
+      if (!user) {
+        toast.error("No user found. Please log in again.")
+        return
+      }
+
+      // Save profile to Firebase
+      const firebaseProfileData = {
+        username: profileData.username || 'Anonymous',
+        displayName: profileData.username || 'Anonymous User',
+        age: parseInt(profileData.age) || 18,
+        city: profileData.city || '',
+        gender: profileData.gender || '',
+        bio: profileData.bio || '',
+        personalityType: (profileData.personalityType as 'introvert' | 'extrovert' | 'ambivert') || 'introvert',
+        interests: profileData.interests || [],
+        profileImage: profileData.profileImage || null,
+        isProfileCompleted: true
+      }
+
+      console.log('🚀 Saving user profile to Firebase:', firebaseProfileData)
+      const savedProfile = await createUserProfile(user, firebaseProfileData)
+      console.log('✅ User profile saved successfully to Firebase:', savedProfile)
       
-      // Reset form and close dialog
-      setFormData({
-        title: '',
-        description: '',
-        date: '',
-        time: '',
-        location: '',
-        price: 'Free',
-        eventUrl: ''
-      });
-      setSelectedImage(null);
-      setIsCreateDialogOpen(false);
-    };
-
-    // Handle image upload if present
-    if (selectedImage) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        createEvent(e.target?.result as string);
-      };
-      reader.readAsDataURL(selectedImage);
-    } else {
-      createEvent();
+      setIsProfileCompleted(true)
+      setIsLoggedIn(true) // User is now logged in after profile completion
+      setExistingProfileData(null) // Clear existing profile data after save
+      
+      toast.success("Profile completed successfully! 🎉", {
+        description: "Welcome to TouchGrass!"
+      })
+      
+      // Check if user originally wanted to create a quest
+      if (pendingQuestCreation) {
+        setPendingQuestCreation(false) // Clear the pending flag
+        setActiveScreen('create-quest') // Redirect to quest creation after profile completion
+      } else if (isEditingProfile) {
+        setIsEditingProfile(false) // Clear the edit flag
+        setActiveScreen('settings') // Navigate back to settings after editing
+      } else {
+        setActiveScreen('board') // Navigate to main app after profile completion 
+      }
+    } catch (error: any) {
+      console.error('❌ Error saving user profile:', error)
+      toast.error(`Failed to save profile: ${error.message}`)
+      // Don't redirect if saving failed
     }
-  };
+  }
 
-  // Check if user profile is complete
-  const isProfileComplete = user?.profileComplete && user?.gender && user?.age && user?.city && user?.bio && user?.personalityType;
+  const handleProfileCreationExit = () => {
+    if (isEditingProfile) {
+      setIsEditingProfile(false)
+      setExistingProfileData(null)
+      setActiveScreen('settings') // Navigate back to settings if editing
+    } else {
+      setActiveScreen('board') // Navigate back to main app
+    }
+  }
+
+  const handleGoogleSignIn = async () => {
+    try {
+      console.log('🔄 Starting Google sign in process...')
+      const { user } = await signInWithGoogle()
+      console.log('✅ Google sign in successful, user:', user ? user.email : 'No user returned')
+      if (user) {
+        toast.success(`Welcome, ${user.displayName || 'User'}! 🎉`)
+        console.log('🚀 User authenticated. Checking profile completion...')
+        // Wait for profile completion check, then navigate accordingly
+        setTimeout(async () => {
+          const profile = await getUserProfile(user.uid)
+          if (!profile || !profile.isProfileCompleted) {
+            console.log('📱 Navigating to profile creation for new/incomplete user')
+            setActiveScreen('profile-creation')
+          } else {
+            console.log('📱 User profile already completed, staying on board')
+          }
+        }, 500)
+      } else {
+        console.error('❌ No user returned from signInWithGoogle')
+        toast.error('Login failed - no user returned')
+      }
+    } catch (error: any) {
+      console.error('❌ Google sign in error:', error)
+      // Don't show error if user cancelled the popup
+      if (error.code !== 'auth/cancelled-popup-request' && error.code !== 'auth/popup-closed-by-user') {
+        toast.error(error.message || 'Failed to sign in')
+      }
+    }
+  }
+
+  const handleGoogleLoginForQuestCreation = async () => {
+    try {
+      const { user } = await signInWithGoogle()
+      if (user) {
+        toast.success(`Welcome, ${user.displayName || 'User'}! 🎉`)
+        setIsGoogleLoginModalOpen(false)
+        
+        // Check if user needs profile completion before quest creation
+        setTimeout(async () => {
+          const profile = await getUserProfile(user.uid)
+          if (!profile || !profile.isProfileCompleted) {
+            console.log('📱 User needs profile completion for quest creation')
+            setActiveScreen('profile-creation')
+          } else {
+            console.log('📱 User profile ready, proceeding to quest creation')
+            setActiveScreen('create-quest')
+          }
+        }, 500)
+        
+        setQuestToEdit(null) // Ensure fresh quest creation
+      }
+    } catch (error: any) {
+      console.error('Google login error:', error)
+      setIsGoogleLoginModalOpen(false)
+      // Don't show error if user cancelled the popup
+      if (error.code !== 'auth/cancelled-popup-request' && error.code !== 'auth/popup-closed-by-user') {
+        toast.error(error.message || 'Failed to sign in')
+      }
+    }
+  }
+
+  const handleMockLoginForQuestCreation = async () => {
+    try {
+      console.log('🎭 Mock login success - closing modal and proceeding')
+      setIsGoogleLoginModalOpen(false)
+      
+      // For mock users, we can proceed directly to quest creation
+      // since they don't need profile completion
+      setActiveScreen('create-quest')
+      setQuestToEdit(null)
+      
+      toast.success('Mock login successful! 🎉')
+    } catch (error: any) {
+      console.error('Mock login success handler error:', error)
+    }
+  }
+
+  const handleCloseGoogleLoginModal = () => {
+    setIsGoogleLoginModalOpen(false)
+    setPendingQuestCreation(false) // Clear pending quest flag if cancelled
+    // Navigate back to board if they cancel
+    setActiveScreen('board')
+  }
+
+
+
+  const renderScreen = () => {
+    switch (activeScreen) {
+      case 'board':
+        return <QuestBoard 
+          isProfileCompleted={isProfileCompleted} 
+          onStartProfileCreation={() => setActiveScreen('profile-creation')} 
+          isLoggedIn={isLoggedIn}
+          quests={quests}
+          onQuestSaved={handleQuestSaved}
+          onGoogleSignIn={handleGoogleSignIn}
+          userUid={user?.uid}
+          savedQuests={userProfile?.savedQuests || []}
+          onQuestSaveToggle={() => checkUserProfileCompletion()}
+        />
+      case 'my-quests':
+        if (!user) {
+          toast.error('Please log in to view your quests')
+          setActiveScreen('board')
+          return <QuestBoard 
+            isProfileCompleted={isProfileCompleted} 
+            onStartProfileCreation={() => setActiveScreen('profile-creation')} 
+            isLoggedIn={isLoggedIn}
+            quests={quests}
+            onQuestSaved={handleQuestSaved}
+            onGoogleSignIn={handleGoogleSignIn}
+            userUid={undefined}
+          />
+        }
+        return <MyQuests 
+          onEditQuest={handleEditQuest} 
+          onNavigateToChats={() => setActiveScreen('chats')} 
+          onOpenChat={handleOpenChat} 
+          onOpenQuestFeedback={handleOpenQuestFeedback}
+          onViewJoinRequest={handleViewJoinRequest}
+          onQuestSaveToggle={() => checkUserProfileCompletion()}
+          badgesRefreshTrigger={badgesRefreshTrigger}
+        />
+      case 'chats':
+        if (!user) {
+          toast.error('Please log in to view chats')
+          setActiveScreen('board')
+          return <QuestBoard 
+            isProfileCompleted={isProfileCompleted} 
+            onStartProfileCreation={() => setActiveScreen('profile-creation')} 
+            isLoggedIn={isLoggedIn}
+            quests={quests}
+            onQuestSaved={handleQuestSaved}
+            onGoogleSignIn={handleGoogleSignIn}
+            userUid={undefined}
+          />
+        }
+        return <Chats onOpenChat={handleOpenChat} userUid={user?.uid} />
+      case 'chat-detail':
+        if (!user) {
+          toast.error('Please log in to view chats')
+          setActiveScreen('board')
+          return <QuestBoard 
+            isProfileCompleted={isProfileCompleted} 
+            onStartProfileCreation={() => setActiveScreen('profile-creation')} 
+            isLoggedIn={isLoggedIn}
+            quests={quests}
+            onQuestSaved={handleQuestSaved}
+            onGoogleSignIn={handleGoogleSignIn}
+            userUid={undefined}
+          />
+        }
+        return activeChatId ? (
+          <ChatScreen 
+            chatId={activeChatId} 
+            questTitle={activeChatTitle}
+            onBack={handleBackToChats}
+            onLeaveChat={handleLeaveChat}
+          />
+        ) : <Chats onOpenChat={handleOpenChat} userUid={user?.uid} />
+      case 'profile':
+        if (!user) {
+          toast.error('Please log in to view your profile')
+          setActiveScreen('board')
+          return <QuestBoard 
+            isProfileCompleted={isProfileCompleted} 
+            onStartProfileCreation={() => setActiveScreen('profile-creation')} 
+            isLoggedIn={isLoggedIn}
+            quests={quests}
+            onQuestSaved={handleQuestSaved}
+            onGoogleSignIn={handleGoogleSignIn}
+            userUid={undefined}
+          />
+        }
+        return <ProfileScreen isProfileCompleted={isProfileCompleted} onStartProfileCreation={() => setActiveScreen('profile-creation')} onEditProfile={() => setActiveScreen('profile-creation')} />
+      case 'profile-creation':
+        return <ProfileCreationScreen 
+          onProfileComplete={handleProfileComplete} 
+          onExit={handleProfileCreationExit}
+          existingProfile={existingProfileData}
+          isEditMode={isEditingProfile}
+        />
+      case 'create-quest':
+        if (!user) {
+          // If user not logged in, show login modal overlay only
+          return (
+            <>
+              <GoogleLoginModal
+                isOpen={isGoogleLoginModalOpen}
+                onClose={handleCloseGoogleLoginModal}
+                onLoginSuccess={handleGoogleLoginForQuestCreation}
+                onMockLoginSuccess={handleMockLoginForQuestCreation}
+                actionType='join'
+                questTitle='Create Quest'
+              />
+              {/* Render a blank screen while modal open - or mini-screen shown to user below modal backdrop */}
+              <div className="absolute inset-0 bg-background flex items-center justify-center z-0">
+                <div className="text-center">
+                  <h3 className="text-xl font-bold text-foreground">Login Required</h3>
+                  <p className="text-sm text-muted-foreground mt-2">Sign in to create your quest!</p>
+                </div>
+              </div>
+            </>
+          )
+        }
+        return <QuestCreationScreen questToEdit={questToEdit} onQuestSaved={handleQuestSaved} onDiscard={handleDiscardQuest} user={user} />
+      case 'notifications':
+        return <NotificationScreen 
+          onBack={() => setActiveScreen('board')}
+          onMarkAllRead={() => {
+            // TODO: Implement mark all notifications as read
+            toast.success('All notifications marked as read')
+          }}
+          onNotificationClick={(notification) => {
+            // TODO: Handle notification click based on type
+            console.log('Notification clicked:', notification)
+          }}
+        />
+      case 'settings':
+        return <SettingsScreen 
+          onBack={() => setActiveScreen('board')}
+          onEditProfile={async () => {
+            if (user) {
+              try {
+                const profile = await getUserProfile(user.uid)
+                if (profile) {
+                  // Convert profile to the format expected by ProfileCreationScreen
+                  setExistingProfileData({
+                    username: profile.username,
+                    age: profile.age.toString(),
+                    city: profile.city,
+                    gender: profile.gender,
+                    bio: profile.bio,
+                    personalityType: profile.personalityType,
+                    interests: profile.interests,
+                    profileImage: profile.profileImage || null
+                  })
+                  setIsEditingProfile(true)
+                  setActiveScreen('profile-creation')
+                } else {
+                  toast.error('Could not load profile data')
+                }
+              } catch (error) {
+                console.error('Error loading profile for editing:', error)
+                toast.error('Failed to load profile')
+              }
+            }
+          }}
+          onLogout={async () => {
+            try {
+              await signOutUser()
+              setIsLoggedIn(false)
+              setIsProfileCompleted(false)
+              toast.success('Logged out successfully! 👋')
+              setActiveScreen('board')
+            } catch (error: any) {
+              console.error('Logout error:', error)
+              toast.error(error.message || 'Failed to logout')
+            }
+          }}
+          onDeleteAccount={() => {
+            // TODO: Implement delete account functionality
+            toast.error('Delete account functionality not implemented yet')
+          }}
+          onOpenFAQ={() => {
+            console.log('📚 Opening FAQ screen')
+            setActiveScreen('faq')
+          }}
+          onOpenContactSupport={() => {
+            console.log('💬 Opening Contact Support screen')
+            setActiveScreen('contact-support')
+          }}
+          onOpenReportBug={() => {
+            console.log('🐛 Opening Report Bug screen')
+            setActiveScreen('report-bug')
+          }}
+          onOpenPrivacyPolicy={() => {
+            console.log('🔒 Opening Privacy Policy screen')
+            setActiveScreen('privacy-policy')
+          }}
+          onOpenTermsOfService={() => {
+            console.log('📜 Opening Terms of Service screen')
+            setActiveScreen('terms-of-service')
+          }}
+        />
+      case 'chat-debug':
+        return <ChatDebugger />
+      case 'populate-data':
+        return <PopulateChatData />
+      case 'quest-feedback':
+        return <QuestFeedbackScreen 
+          questTitle={questFeedbackTitle}
+          questId={questFeedbackId}
+          onBack={handleBackFromQuestFeedback}
+          onSubmitFeedback={handleSubmitQuestFeedback}
+        />
+      case 'quest-approval':
+        return selectedJoinRequest ? (
+          <QuestApprovalScreen
+            joinRequest={selectedJoinRequest}
+            onBack={() => setActiveScreen('my-quests')}
+            onApprove={handleApproveJoinRequest}
+            onReject={handleRejectJoinRequest}
+          />
+        ) : <MyQuests 
+          onEditQuest={handleEditQuest} 
+          onNavigateToChats={() => setActiveScreen('chats')} 
+          onOpenChat={handleOpenChat} 
+          onOpenQuestFeedback={handleOpenQuestFeedback}
+          onViewJoinRequest={handleViewJoinRequest}
+          onQuestSaveToggle={() => checkUserProfileCompletion()}
+          badgesRefreshTrigger={badgesRefreshTrigger}
+        />
+      case 'faq':
+        return <FAQScreen onBack={() => setActiveScreen('settings')} />
+      case 'contact-support':
+        return <ContactSupportScreen onBack={() => setActiveScreen('settings')} />
+      case 'report-bug':
+        return <ReportBugScreen onBack={() => setActiveScreen('settings')} />
+      case 'privacy-policy':
+        return <PrivacyPolicyScreen onBack={() => setActiveScreen('settings')} />
+      case 'terms-of-service':
+        return <TermsOfServiceScreen onBack={() => setActiveScreen('settings')} />
+      default:
+        return <QuestBoard />
+    }
+  }
 
   return (
-    <div className="min-h-screen bg-[#f5f5dc]" style={{ fontFamily: "'Press Start 2P', monospace" }}>
-      <style dangerouslySetInnerHTML={{ __html: formStyles }} />
-      {/* Header Section - TOUCHGRASS */}
-      <header className="lilac-header p-2 sm:p-4">
-        <div className="retro-border p-2 sm:p-4">
-          {/* Top row with logo and sign in button */}
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
-            {/* Logo and title section */}
-            <div className="flex items-center justify-center sm:justify-start gap-2 sm:gap-4">
-              <div className="retro-border bg-[#ff6347] p-1 sm:p-2">
-                <Sword className="h-6 w-6 sm:h-8 sm:w-8 text-white pixel-perfect" />
-              </div>
-              <h1 className="text-2xl sm:text-4xl text-[#ff6347] drop-shadow-lg tracking-wider pixel-perfect">
-                TOUCHGRASS
-              </h1>
-              <div className="retro-border bg-[#ff6347] p-1 sm:p-2">
-                <Gamepad2 className="h-6 w-6 sm:h-8 sm:w-8 text-white pixel-perfect" />
-              </div>
-            </div>
-            
-            {/* Sign In/Sign Up Buttons - Top Right */}
-            {!user && (
-              <div className="flex items-center justify-center sm:justify-end">
-                <Button
-                  onClick={() => showAuthModal('signup')}
-                  className="retro-button px-4 sm:px-6 py-2 text-[#2d2d2d] bg-[#98fb98] border-[#32cd32] hover:bg-[#90ee90] transition-all duration-200 text-xs sm:text-sm font-bold shadow-lg hover:shadow-xl transform hover:scale-105 w-full sm:w-auto"
-                >
-                  <span className="pixel-perfect">LOG IN</span>
-                </Button>
-              </div>
-            )}
-          </div>
-        </div>
-      </header>
-
-      <div className={`max-w-6xl mx-auto px-2 sm:px-4 py-4 sm:py-6 ${user && isMobile ? 'pb-20' : ''}`}>
-        {/* Welcome Message for New Users */}
-        {user && isProfileComplete && user.createdAt && (
-          <div className="mb-6 sm:mb-8">
-            <div className="retro-border bg-[#d4edda] border-[#28a745] p-4 sm:p-6 text-center">
-              <div className="flex items-center justify-center gap-2 sm:gap-3 mb-4">
-                <CheckCircle className="h-6 w-6 sm:h-8 sm:w-8 text-[#155724]" />
-                <h3 className="text-[#155724] text-lg sm:text-xl font-bold pixel-perfect">
-                  ~ WELCOME TO THE ADVENTURE! ~
-                </h3>
-              </div>
-              <p className="text-[#155724] text-sm sm:text-base mb-4 pixel-perfect">
-                Your hero profile is complete! You're now ready to find quest companions and start your adventures.
-              </p>
-              <div className="flex items-center justify-center gap-2 text-xs sm:text-sm text-[#155724] pixel-perfect">
-                <span>Member since:</span>
-                <span className="font-semibold">
-                  {new Date(user.createdAt).toLocaleDateString()}
-                </span>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Navigation Menu for Logged-in Users */}
-        {user && !isMobile && (
-          <NavigationMenu 
-            currentPage={currentPage}
-            onPageChange={setCurrentPage}
-            unreadCount={getTotalUnreadCount()}
-          />
-        )}
-
-        {/* Page Content */}
-        {user ? (
-          <>
-            {currentPage === 'quests' && (
-              <>
-                {/* Start New Quest Button */}
-                <div className="mb-6 sm:mb-8">
-                  <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-                    <DialogTrigger asChild>
-                      <AuthGuard 
-                        action="create-quest"
-                        className="retro-button w-full h-12 sm:h-16 text-[#2d2d2d] text-base sm:text-xl bg-[#98fb98] border-4 border-[#32cd32] hover:bg-[#90ee90] transition-all duration-200 flex items-center justify-center gap-2 sm:gap-3 shadow-lg hover:shadow-xl transform hover:scale-[1.02] active:scale-[0.98]"
-                      >
-                        <span className="pixel-perfect">▶</span>
-                        <span className="pixel-perfect">START NEW QUEST</span>
-                        <span className="pixel-perfect">◀</span>
-                      </AuthGuard>
-                    </DialogTrigger>
-                    <DialogContent className="retro-border bg-[#e6e6fa] border-[#87ceeb] text-[#2d2d2d] max-w-[95vw] sm:max-w-lg max-h-[90vh]">
-                      <DialogHeader className="retro-border bg-[#f0f8ff] p-3 sm:p-4 mb-4 sm:mb-6">
-                        <DialogTitle className="text-[#ff6347] text-center text-base sm:text-lg pixel-perfect">~ CREATE NEW QUEST ~</DialogTitle>
-                      </DialogHeader>
-                      <div className="space-y-4 sm:space-y-5 text-sm overflow-y-auto max-h-[70vh]">
-                        <div>
-                          <Label htmlFor="title" className="text-[#4682b4] text-xs pixel-perfect">Quest Name:</Label>
-                          <Input 
-                            id="title" 
-                            placeholder="What's your adventure?" 
-                            className="form-input retro-border bg-[#ffffff] text-[#2d2d2d] border-[#87ceeb] mt-2 h-10 sm:h-12"
-                            value={formData.title}
-                            onChange={(e) => setFormData({...formData, title: e.target.value})}
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="description" className="text-[#4682b4] text-xs pixel-perfect">Quest Description:</Label>
-                          <Textarea 
-                            id="description" 
-                            placeholder="Tell heroes about your quest..." 
-                            rows={3} 
-                            className="form-textarea retro-border bg-[#ffffff] text-[#2d2d2d] border-[#87ceeb] mt-2 min-h-[80px] sm:min-h-[100px]"
-                            value={formData.description}
-                            onChange={(e) => setFormData({...formData, description: e.target.value})}
-                          />
-                        </div>
-                        <div className="grid grid-cols-1 gap-4">
-                          <div>
-                            <Label htmlFor="date" className="text-[#4682b4] text-xs pixel-perfect">Date:</Label>
-                            <div className="flex gap-1">
-                              <select 
-                                value={formData.date.split('-')[2] || '01'}
-                                onChange={(e) => {
-                                  const currentDate = formData.date || '2025-01-01';
-                                  const [year, month] = currentDate.split('-');
-                                  const newDate = `${year || '2025'}-${month || '01'}-${e.target.value}`;
-                                  console.log('Day changed to:', newDate);
-                                  setFormData({...formData, date: newDate});
-                                }}
-                                style={{
-                                  fontSize: '10px',
-                                  fontWeight: 'normal',
-                                  fontFamily: "'Press Start 2P', monospace",
-                                  lineHeight: '1.4',
-                                  color: '#2d2d2d',
-                                  background: '#ffffff',
-                                  border: '4px solid #87ceeb',
-                                  borderStyle: 'outset',
-                                  padding: '8px 12px',
-                                  borderRadius: '0',
-                                  width: '25%',
-                                  height: '32px',
-                                  marginTop: '8px'
-                                }}
-                              >
-                                {Array.from({length: 31}, (_, i) => i + 1).map(day => (
-                                  <option key={day} value={day.toString().padStart(2, '0')}>
-                                    {day}
-                                  </option>
-                                ))}
-                              </select>
-                              <span style={{ marginTop: '8px', fontSize: '12px', color: '#2d2d2d' }}>/</span>
-                              <select 
-                                value={formData.date.split('-')[1] || '01'}
-                                onChange={(e) => {
-                                  const currentDate = formData.date || '2025-01-01';
-                                  const [year, _, day] = currentDate.split('-');
-                                  const newDate = `${year || '2025'}-${e.target.value}-${day || '01'}`;
-                                  console.log('Month changed to:', newDate);
-                                  setFormData({...formData, date: newDate});
-                                }}
-                                style={{
-                                  fontSize: '10px',
-                                  fontWeight: 'normal',
-                                  fontFamily: "'Press Start 2P', monospace",
-                                  lineHeight: '1.4',
-                                  color: '#2d2d2d',
-                                  background: '#ffffff',
-                                  border: '4px solid #87ceeb',
-                                  borderStyle: 'outset',
-                                  padding: '8px 12px',
-                                  borderRadius: '0',
-                                  width: '25%',
-                                  height: '32px',
-                                  marginTop: '8px'
-                                }}
-                              >
-                                {[
-                                  {value: '01', label: 'Jan'},
-                                  {value: '02', label: 'Feb'},
-                                  {value: '03', label: 'Mar'},
-                                  {value: '04', label: 'Apr'},
-                                  {value: '05', label: 'May'},
-                                  {value: '06', label: 'Jun'},
-                                  {value: '07', label: 'Jul'},
-                                  {value: '08', label: 'Aug'},
-                                  {value: '09', label: 'Sep'},
-                                  {value: '10', label: 'Oct'},
-                                  {value: '11', label: 'Nov'},
-                                  {value: '12', label: 'Dec'}
-                                ].map(month => (
-                                  <option key={month.value} value={month.value}>
-                                    {month.label}
-                                  </option>
-                                ))}
-                              </select>
-                              <span style={{ marginTop: '8px', fontSize: '12px', color: '#2d2d2d' }}>/</span>
-                              <select 
-                                value={formData.date.split('-')[0] || '2025'}
-                                onChange={(e) => {
-                                  const currentDate = formData.date || '2025-01-01';
-                                  const [_, month, day] = currentDate.split('-');
-                                  const newDate = `${e.target.value}-${month || '01'}-${day || '01'}`;
-                                  console.log('Year changed to:', newDate);
-                                  setFormData({...formData, date: newDate});
-                                }}
-                                style={{
-                                  fontSize: '10px',
-                                  fontWeight: 'normal',
-                                  fontFamily: "'Press Start 2P', monospace",
-                                  lineHeight: '1.4',
-                                  color: '#2d2d2d',
-                                  background: '#ffffff',
-                                  border: '4px solid #87ceeb',
-                                  borderStyle: 'outset',
-                                  padding: '8px 12px',
-                                  borderRadius: '0',
-                                  width: '35%',
-                                  height: '32px',
-                                  marginTop: '8px'
-                                }}
-                              >
-                                {Array.from({length: 10}, (_, i) => new Date().getFullYear() + i).map(year => (
-                                  <option key={year} value={year}>
-                                    {year}
-                                  </option>
-                                ))}
-                              </select>
-                            </div>
-                          </div>
-                          <div>
-                            <Label htmlFor="time" className="text-[#4682b4] text-xs pixel-perfect">Time:</Label>
-                            <div className="flex gap-1">
-                              <select 
-                                value={(() => {
-                                  const currentTime = formData.time || '12:00';
-                                  const [hours] = currentTime.split(':');
-                                  const hour = parseInt(hours);
-                                  return hour === 0 ? '12' : (hour > 12 ? (hour - 12).toString() : hour.toString());
-                                })()}
-                                onChange={(e) => {
-                                  const currentTime = formData.time || '12:00';
-                                  const [hours, minutes] = currentTime.split(':');
-                                  const currentHour = parseInt(hours);
-                                  const isPM = currentHour >= 12;
-                                  let newHour = parseInt(e.target.value);
-                                  if (isPM && newHour !== 12) {
-                                    newHour += 12;
-                                  } else if (!isPM && newHour === 12) {
-                                    newHour = 0;
-                                  }
-                                  const newTime = `${newHour.toString().padStart(2, '0')}:${minutes || '00'}`;
-                                  console.log('Hour changed to:', newTime);
-                                  setFormData({...formData, time: newTime});
-                                }}
-                                style={{
-                                  fontSize: '10px',
-                                  fontWeight: 'normal',
-                                  fontFamily: "'Press Start 2P', monospace",
-                                  lineHeight: '1.4',
-                                  color: '#2d2d2d',
-                                  background: '#ffffff',
-                                  border: '4px solid #87ceeb',
-                                  borderStyle: 'outset',
-                                  padding: '8px 12px',
-                                  borderRadius: '0',
-                                  width: '25%',
-                                  height: '32px',
-                                  marginTop: '8px'
-                                }}
-                              >
-                                {Array.from({length: 12}, (_, i) => i + 1).map(hour => (
-                                  <option key={hour} value={hour.toString().padStart(2, '0')}>
-                                    {hour}
-                                  </option>
-                                ))}
-                              </select>
-                              <span style={{ marginTop: '8px', fontSize: '12px', color: '#2d2d2d' }}>:</span>
-                              <select 
-                                value={formData.time.split(':')[1] || '00'}
-                                onChange={(e) => {
-                                  const currentTime = formData.time || '12:00';
-                                  const [hours] = currentTime.split(':');
-                                  const newTime = `${hours || '12'}:${e.target.value}`;
-                                  console.log('Minutes changed to:', newTime);
-                                  setFormData({...formData, time: newTime});
-                                }}
-                                style={{
-                                  fontSize: '10px',
-                                  fontWeight: 'normal',
-                                  fontFamily: "'Press Start 2P', monospace",
-                                  lineHeight: '1.4',
-                                  color: '#2d2d2d',
-                                  background: '#ffffff',
-                                  border: '4px solid #87ceeb',
-                                  borderStyle: 'outset',
-                                  padding: '8px 12px',
-                                  borderRadius: '0',
-                                  width: '25%',
-                                  height: '32px',
-                                  marginTop: '8px'
-                                }}
-                              >
-                                {Array.from({length: 60}, (_, i) => i).map(minute => (
-                                  <option key={minute} value={minute.toString().padStart(2, '0')}>
-                                    {minute.toString().padStart(2, '0')}
-                                  </option>
-                                ))}
-                              </select>
-                              <select 
-                                value={(() => {
-                                  const currentTime = formData.time || '12:00';
-                                  const [hours] = currentTime.split(':');
-                                  const hour = parseInt(hours);
-                                  return hour >= 12 ? 'PM' : 'AM';
-                                })()}
-                                onChange={(e) => {
-                                  const currentTime = formData.time || '12:00';
-                                  const [hours, minutes] = currentTime.split(':');
-                                  let hour = parseInt(hours);
-                                  if (e.target.value === 'PM' && hour < 12) {
-                                    hour += 12;
-                                  } else if (e.target.value === 'AM' && hour >= 12) {
-                                    hour -= 12;
-                                  }
-                                  const newTime = `${hour.toString().padStart(2, '0')}:${minutes || '00'}`;
-                                  console.log('AM/PM changed to:', newTime);
-                                  setFormData({...formData, time: newTime});
-                                }}
-                                style={{
-                                  fontSize: '10px',
-                                  fontWeight: 'normal',
-                                  fontFamily: "'Press Start 2P', monospace",
-                                  lineHeight: '1.4',
-                                  color: '#2d2d2d',
-                                  background: '#ffffff',
-                                  border: '4px solid #87ceeb',
-                                  borderStyle: 'outset',
-                                  padding: '8px 12px',
-                                  borderRadius: '0',
-                                  width: '20%',
-                                  height: '32px',
-                                  marginTop: '8px'
-                                }}
-                              >
-                                <option value="AM">AM</option>
-                                <option value="PM">PM</option>
-                              </select>
-                            </div>
-                          </div>
-                        </div>
-                        <div>
-                          <Label htmlFor="location" className="text-[#4682b4] text-xs pixel-perfect">Location:</Label>
-                          <Input 
-                            id="location" 
-                            placeholder="Where is the quest?" 
-                            className="form-input retro-border bg-[#ffffff] text-[#2d2d2d] border-[#87ceeb] mt-2 h-10 sm:h-12"
-                            value={formData.location}
-                            onChange={(e) => setFormData({...formData, location: e.target.value})}
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="price" className="text-[#4682b4] text-xs pixel-perfect">Cost:</Label>
-                          <select 
-                            id="price"
-                            value={formData.price}
-                            onChange={(e) => {
-                              console.log('Price changed to:', e.target.value);
-                              setFormData({...formData, price: e.target.value});
-                            }}
-                            className="form-select retro-border bg-[#ffffff] text-[#2d2d2d] border-[#87ceeb] mt-2 h-10 sm:h-12 w-full px-3 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-[#87ceeb]"
-                          >
-                            <option value="Free" className="text-xs">Free</option>
-                            <option value="Paid" className="text-xs">Paid</option>
-                          </select>
-                        </div>
-
-                        <div>
-                          <Label htmlFor="eventUrl" className="text-[#4682b4] text-xs pixel-perfect">Quest Link (Optional):</Label>
-                          <Input 
-                            id="eventUrl" 
-                            placeholder="https://..." 
-                            className="form-input retro-border bg-[#ffffff] text-[#2d2d2d] border-[#87ceeb] mt-2 h-10 sm:h-12"
-                            value={formData.eventUrl}
-                            onChange={(e) => setFormData({...formData, eventUrl: e.target.value})}
-                          />
-                        </div>
-                        <div>
-                          <Label className="text-[#4682b4] text-xs pixel-perfect">Quest Image (Optional):</Label>
-                          <ImageUpload 
-                            onImageChange={setSelectedImage}
-                            className="mt-2"
-                          />
-                        </div>
-                        <AuthGuard 
-                          action="create-quest"
-                          className="retro-button w-full h-12 sm:h-14 text-[#2d2d2d] bg-[#98fb98] border-[#32cd32] hover:bg-[#90ee90] transition-all duration-200 text-sm sm:text-base font-bold shadow-lg hover:shadow-xl transform hover:scale-[1.02] active:scale-[0.98]"
-                          onClick={handleCreateEvent}
-                        >
-                          <span className="pixel-perfect">▶ CREATE QUEST ◀</span>
-                        </AuthGuard>
-                      </div>
-                    </DialogContent>
-                  </Dialog>
-                </div>
-
-                {/* Quest Categories Section */}
-                <div className="mb-8">
-                  <CategoryFilter 
-                    categories={categories}
-                    selectedCategory={selectedCategory}
-                    onCategoryChange={setSelectedCategory}
-                  />
-                </div>
-
-                {/* Quest/Event List Section */}
-                {filteredEvents.length > 0 ? (
-                  <div className="space-y-6">
-                    <div className="grid gap-6">
-                      {filteredEvents.map((event) => (
-                        <EventCard
-                          key={event.id}
-                          event={event}
-                          isInterested={interestedEvents.has(event.id)}
-                          isSaved={isEventSaved(event.id)}
-                          onToggleInterest={toggleInterest}
-                          onToggleSaved={toggleSaved}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                ) : (
-                  /* Empty State */
-                  <div className="lilac-event-box retro-border p-4 sm:p-8 text-center">
-                    <div className="retro-border bg-white/80 p-4 sm:p-6 inline-block mb-4 sm:mb-6">
-                      <Sword className="h-16 w-16 sm:h-20 sm:w-20 text-[#87ceeb] mx-auto mb-4 pixel-perfect" />
-                    </div>
-                    <h3 className="text-[#ff6347] text-lg sm:text-xl mb-4 tracking-wide pixel-perfect">~ NO QUESTS FOUND ~</h3>
-                    <p className="text-[#4682b4] text-sm sm:text-base mb-4 sm:mb-6 pixel-perfect">Try selecting a different category or create your own quest!</p>
-                    <AuthGuard 
-                      action="create-quest"
-                      className="retro-button px-4 sm:px-6 py-2 sm:py-3 text-sm bg-[#98fb98] border-[#32cd32] hover:bg-[#90ee90] transition-all duration-200 transform hover:scale-105 w-full sm:w-auto"
-                      onClick={() => setIsCreateDialogOpen(true)}
-                    >
-                      <span className="pixel-perfect">CREATE QUEST</span>
-                    </AuthGuard>
-                  </div>
-                )}
-              </>
-            )}
-
-            {currentPage === 'saved' && <SavedEvents />}
-            {currentPage === 'chats' && <Chats />}
-            {currentPage === 'profile' && <Profile />}
-            {currentPage === 'settings' && <Settings />}
-          </>
-        ) : (
-          <>
-            {/* Quest Categories Section */}
-            <div className="mb-8">
-              <CategoryFilter 
-                categories={categories}
-                selectedCategory={selectedCategory}
-                onCategoryChange={setSelectedCategory}
-              />
-            </div>
-
-            {/* Quest/Event List Section */}
-            {filteredEvents.length > 0 ? (
-              <div className="space-y-6">
-                <div className="grid gap-6">
-                  {filteredEvents.map((event) => (
-                    <EventCard
-                      key={event.id}
-                      event={event}
-                      isInterested={interestedEvents.has(event.id)}
-                      isSaved={isEventSaved(event.id)}
-                      onToggleInterest={toggleInterest}
-                      onToggleSaved={toggleSaved}
-                    />
-                  ))}
-                </div>
-              </div>
-            ) : (
-              /* Empty State */
-              <div className="lilac-event-box retro-border p-4 sm:p-8 text-center">
-                <div className="retro-border bg-white/80 p-4 sm:p-6 inline-block mb-4 sm:mb-6">
-                  <Sword className="h-16 w-16 sm:h-20 sm:w-20 text-[#87ceeb] mx-auto mb-4 pixel-perfect" />
-                </div>
-                <h3 className="text-[#ff6347] text-lg sm:text-xl mb-4 tracking-wide pixel-perfect">~ NO QUESTS FOUND ~</h3>
-                <p className="text-[#4682b4] text-sm sm:text-base mb-4 sm:mb-6 pixel-perfect">Try selecting a different category or sign up to create your own quest!</p>
-                <Button
-                  onClick={() => showAuthModal('signup')}
-                  className="retro-button px-4 sm:px-6 py-2 sm:py-3 text-sm bg-[#98fb98] border-[#32cd32] hover:bg-[#90ee90] transition-all duration-200 transform hover:scale-105 w-full sm:w-auto"
-                >
-                  <span className="pixel-perfect">SIGN UP TO CREATE QUESTS</span>
-                </Button>
-              </div>
-            )}
-          </>
-        )}
-      </div>
+    <div className="relative size-full min-h-screen bg-background overflow-x-hidden">
+      {/* Mobile viewport meta tag enforced through CSS */}
+      <style>{`
+        @viewport { width: device-width; initial-scale: 1; }
+        html { 
+          -webkit-text-size-adjust: 100%; 
+          -webkit-tap-highlight-color: transparent;
+        }
+        body { 
+          overscroll-behavior: none;
+          -webkit-overflow-scrolling: touch;
+        }
+      `}</style>
       
-      {/* Mobile Navigation for Logged-in Users */}
-      {user && isMobile && (
-        <MobileNavigation 
-          currentPage={currentPage}
-          onPageChange={setCurrentPage}
-          unreadCount={getTotalUnreadCount()}
+      {!['chat-detail', 'profile-creation', 'notifications', 'settings', 'chat-debug', 'populate-data', 'quest-feedback', 'quest-approval', 'faq', 'contact-support', 'report-bug', 'privacy-policy', 'terms-of-service'].includes(activeScreen) && <GameHeader onOpenNotifications={handleOpenNotifications} onOpenSettings={handleOpenSettings} onOpenChatDebug={handleOpenChatDebug} onOpenPopulateData={handleOpenPopulateData} />}
+      <main 
+        className={`${!['chat-detail', 'profile-creation', 'notifications', 'settings', 'chat-debug', 'populate-data', 'quest-feedback', 'quest-approval', 'faq', 'contact-support', 'report-bug', 'privacy-policy', 'terms-of-service'].includes(activeScreen) ? 'pb-24' : 'pb-0'} px-0`}
+        style={{
+          paddingTop: !['chat-detail', 'profile-creation', 'notifications', 'settings', 'chat-debug', 'populate-data', 'quest-feedback', 'quest-approval', 'faq', 'contact-support', 'report-bug', 'privacy-policy', 'terms-of-service'].includes(activeScreen) 
+            ? 'calc(16px + env(safe-area-inset-top) + 80px)' 
+            : '0px'
+        }}
+      >
+        {renderScreen()}
+      </main>
+
+      {/* Floating Action Button - Only show if profile is completed */}
+      {['board', 'my-quests'].includes(activeScreen) && isProfileCompleted && (
+        <div 
+          className="fixed z-50 touch-manipulation"
+          style={{
+            bottom: 'calc(112px + env(safe-area-inset-bottom))',
+            right: 'max(16px, calc(16px + env(safe-area-inset-right)))',
+            width: '56px',
+            height: '56px'
+          }}
+        >
+          <button
+            onClick={handleCreateQuest}
+            className="w-full h-full rounded-full floating-action-button transition-all duration-300 transform active:scale-90 group flex items-center justify-center"
+          >
+            <Plus 
+              size={20} 
+              className="text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.8)] transition-transform duration-300 group-active:rotate-90 relative z-10" 
+            />
+            
+            {/* Pulse Ring Animation */}
+            <div 
+              className="absolute inset-0 rounded-full border-2 border-neon-cyan opacity-75"
+              style={{
+                animation: 'ping 2s cubic-bezier(0, 0, 0.2, 1) infinite'
+              }}
+            />
+          </button>
+        </div>
+      )}
+      
+      {/* Hide footer on full-screen experiences */}
+      {!['chat-detail', 'profile-creation', 'notifications', 'settings', 'chat-debug', 'populate-data', 'quest-feedback', 'quest-approval', 'faq', 'contact-support', 'report-bug', 'privacy-policy', 'terms-of-service'].includes(activeScreen) && (
+        <BottomNavigation 
+          activeTab={activeScreen === 'create-quest' ? 'my-quests' : (activeScreen as 'board' | 'my-quests' | 'chats' | 'profile')} 
+          onTabChange={handleNavigation}
         />
       )}
       
-      {/* Authentication Modal */}
-      <AuthModal />
+      {/* Mobile-Optimized Toast notifications */}
+      <Toaster 
+        position="top-center"
+        closeButton
+        richColors
+        theme="light"
+        toastOptions={{
+          style: {
+            padding: '16px',
+            fontSize: '14px'
+          }
+        }}
+      />
     </div>
-  );
+  )
 }
 
-// Wrap the app with AuthProvider
+// Main App component with Firebase provider
 export default function App() {
   return (
-    <AuthProvider>
+    <FirebaseProvider>
       <AppContent />
-    </AuthProvider>
-  );
+    </FirebaseProvider>
+  )
 }

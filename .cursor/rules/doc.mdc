@@ -1,0 +1,22 @@
+---
+description: refer to this prd for this entire project
+globs:
+alwaysApply: true
+---
+/**
+ * This project is governed by the product requirements in questboard_prd.md.
+ * All features, user stories, technical requirements, and design decisions
+ * should be implemented in accordance with the specifications and vision
+ * described in that document.
+ *
+ * If you are developing, reviewing, or maintaining code in this repository,
+ * always refer to questboard_prd.md for authoritative guidance on:
+ *   - Core features and user flows
+ *   - UI/UX and design system
+ *   - Technical stack and architecture
+ *   - Gamification and retro gaming theme
+ *   - Authentication, security, and privacy requirements
+ *
+ * Any changes or additions to the product should be cross-checked with the PRD.
+ * If you find discrepancies or need clarification, consult the PRD first.
+ */
