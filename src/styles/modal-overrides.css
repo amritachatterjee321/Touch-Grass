@@ -1,0 +1,69 @@
+/* Modal Z-index Overrides for TouchGrass */
+
+/* Ensure all dialog overlays appear above navigation and header */
+[data-slot="dialog-overlay"] {
+  z-index: 75 !important;
+  backdrop-filter: blur(8px) !important;
+}
+
+/* Quest Management Modal specific overrides */
+[data-slot="dialog-content"] {
+  z-index: 80 !important;
+  border-radius: 12px !important;
+}
+
+/* Alert Dialog overrides for delete confirmations */
+[data-slot="alert-dialog-overlay"] {
+  z-index: 85 !important;
+  backdrop-filter: blur(8px) !important;
+}
+
+[data-slot="alert-dialog-content"] {
+  z-index: 90 !important;
+  border-radius: 12px !important;
+}
+
+/* Mobile-specific modal adjustments */
+@media screen and (max-width: 768px) {
+  [data-slot="dialog-content"] {
+    margin: 16px;
+    max-height: calc(100vh - 140px) !important;
+    min-height: auto !important;
+    height: auto !important;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    top: 4vh !important;
+    transform: translateX(-50%) !important;
+    position: fixed !important;
+    bottom: auto !important;
+  }
+  
+  [data-slot="alert-dialog-content"] {
+    margin: 16px;
+    max-width: calc(100vw - 32px);
+    max-height: 70vh !important;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Ensure modal doesn't conflict with bottom navigation */
+  [data-slot="dialog-overlay"] {
+    padding-bottom: 100px; /* Account for bottom nav height */
+  }
+  
+  /* Prevent body scroll when modal is open on mobile */
+  body:has([data-slot="dialog-content"]) {
+    overflow: hidden;
+    position: fixed;
+    width: 100%;
+  }
+}
+
+/* Ensure touch-friendly close buttons on mobile */
+@media screen and (max-width: 768px) {
+  [data-slot="dialog-content"] button[data-radix-dialog-close] {
+    min-width: 44px;
+    min-height: 44px;
+    padding: 12px;
+  }
+}
