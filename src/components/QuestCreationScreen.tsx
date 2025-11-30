@@ -374,7 +374,12 @@ export function QuestCreationScreen({ questToEdit, onQuestSaved, onDiscard, onCl
                 inputMode="text"
                 placeholder={!isEditMode ? getRandomPlaceholder('title') : ''}
                 value={formData.title}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({...formData, title: e.target.value})}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                  e.stopPropagation()
+                  setFormData({...formData, title: e.target.value})
+                }}
+                onFocus={(e) => e.stopPropagation()}
+                onClick={(e) => e.stopPropagation()}
                 className="w-full p-4 rounded-lg border border-border bg-white text-black placeholder-gray-500 focus:border-neon-cyan focus:ring-2 focus:ring-neon-cyan/20 transition-all mobile-form-input"
                 style={{ fontSize: '16px' }}
                 required
@@ -389,7 +394,12 @@ export function QuestCreationScreen({ questToEdit, onQuestSaved, onDiscard, onCl
               <textarea
                 placeholder={!isEditMode ? getRandomPlaceholder('description') : ''}
                 value={formData.description}
-                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setFormData({...formData, description: e.target.value})}
+                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => {
+                  e.stopPropagation()
+                  setFormData({...formData, description: e.target.value})
+                }}
+                onFocus={(e) => e.stopPropagation()}
+                onClick={(e) => e.stopPropagation()}
                 className="w-full p-4 rounded-lg border border-border bg-white text-black placeholder-gray-500 focus:border-neon-cyan focus:ring-2 focus:ring-neon-cyan/20 transition-all min-h-[100px] resize-none mobile-form-input"
                 style={{ fontSize: '16px' }}
                 required
@@ -463,7 +473,12 @@ export function QuestCreationScreen({ questToEdit, onQuestSaved, onDiscard, onCl
                 inputMode="text"
                 placeholder={!isEditMode ? getRandomPlaceholder('area') : ''}
                 value={formData.area}
-                onChange={(e) => setFormData({...formData, area: e.target.value})}
+                onChange={(e) => {
+                  e.stopPropagation()
+                  setFormData({...formData, area: e.target.value})
+                }}
+                onFocus={(e) => e.stopPropagation()}
+                onClick={(e) => e.stopPropagation()}
                 className="w-full p-4 rounded-lg border border-border bg-white text-black placeholder-gray-500 focus:border-neon-cyan focus:ring-2 focus:ring-neon-cyan/20 transition-all mobile-form-input"
                 style={{ fontSize: '16px' }}
                 required
@@ -482,7 +497,12 @@ export function QuestCreationScreen({ questToEdit, onQuestSaved, onDiscard, onCl
                 <input
                   type="date"
                   value={formData.date}
-                  onChange={(e) => setFormData({...formData, date: e.target.value})}
+                  onChange={(e) => {
+                    e.stopPropagation()
+                    setFormData({...formData, date: e.target.value})
+                  }}
+                  onFocus={(e) => e.stopPropagation()}
+                  onClick={(e) => e.stopPropagation()}
                   className="w-full p-4 rounded-lg border border-border bg-input-background text-foreground focus:border-neon-cyan focus:ring-2 focus:ring-neon-cyan/20 transition-all"
                   min={new Date().toISOString().split('T')[0]}
                   required
@@ -497,7 +517,12 @@ export function QuestCreationScreen({ questToEdit, onQuestSaved, onDiscard, onCl
                 <input
                   type="time"
                   value={formData.time}
-                  onChange={(e) => setFormData({...formData, time: e.target.value})}
+                  onChange={(e) => {
+                    e.stopPropagation()
+                    setFormData({...formData, time: e.target.value})
+                  }}
+                  onFocus={(e) => e.stopPropagation()}
+                  onClick={(e) => e.stopPropagation()}
                   className="w-full p-4 rounded-lg border border-border bg-input-background text-foreground focus:border-neon-cyan focus:ring-2 focus:ring-neon-cyan/20 transition-all"
                   required
                 />
@@ -521,7 +546,12 @@ export function QuestCreationScreen({ questToEdit, onQuestSaved, onDiscard, onCl
                 inputMode="decimal"
                 placeholder={!isEditMode ? getRandomPlaceholder('cost') : ''}
                 value={formData.cost}
-                onChange={(e) => setFormData({...formData, cost: e.target.value})}
+                onChange={(e) => {
+                  e.stopPropagation()
+                  setFormData({...formData, cost: e.target.value})
+                }}
+                onFocus={(e) => e.stopPropagation()}
+                onClick={(e) => e.stopPropagation()}
                 className="w-full p-4 rounded-lg border border-border bg-input-background text-foreground placeholder-muted-foreground focus:border-neon-cyan focus:ring-2 focus:ring-neon-cyan/20 transition-all mobile-form-input"
                 style={{ fontSize: '16px' }}
               />
@@ -610,7 +640,12 @@ export function QuestCreationScreen({ questToEdit, onQuestSaved, onDiscard, onCl
                     type="url"
                     placeholder={`External link ${index + 1} (e.g., event page, booking site, etc.)`}
                     value={link}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateExternalLink(index, e.target.value)}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                      e.stopPropagation()
+                      updateExternalLink(index, e.target.value)
+                    }}
+                    onFocus={(e) => e.stopPropagation()}
+                    onClick={(e) => e.stopPropagation()}
                     className="flex-1 p-3 rounded-lg border border-border bg-input-background text-foreground placeholder-muted-foreground focus:border-neon-orange focus:ring-2 focus:ring-neon-orange/20 transition-all"
                   />
                   {formData.externalLinks.length > 1 && (
