@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useRef } from "react"
 import { createPortal } from "react-dom"
-import { MapPin, Clock, DollarSign, Sparkles, Zap, Trash2, ArrowLeft, Camera, Link, X, Upload } from "lucide-react"
+import { MapPin, Clock, DollarSign, Sparkles, Zap, Trash2, ArrowLeft, Camera, X, Upload } from "lucide-react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select"
 import { toast } from "sonner"
 import { deleteQuest, createQuest, updateQuest } from "../firebase/quests"
@@ -82,8 +82,7 @@ export function QuestCreationScreen({ questToEdit, onQuestSaved, onDiscard, onCl
     area: '',
     date: '',
     time: '',
-    cost: '',
-    externalLinks: ['']
+    cost: ''
   })
   
   const [questImage, setQuestImage] = useState<string | null>(null)
@@ -117,8 +116,7 @@ export function QuestCreationScreen({ questToEdit, onQuestSaved, onDiscard, onCl
         area: questToEdit.location || '',
         date: questToEdit.date || '',
         time: questToEdit.time || '',
-        cost: questToEdit.cost || '',
-        externalLinks: questToEdit.externalLinks || ['']
+        cost: questToEdit.cost || ''
       })
       setQuestImage(questToEdit.image || null)
     }
@@ -224,32 +222,6 @@ export function QuestCreationScreen({ questToEdit, onQuestSaved, onDiscard, onCl
     }
   }
 
-  const addExternalLink = () => {
-    if (formData.externalLinks.length < 3) {
-      setFormData({
-        ...formData,
-        externalLinks: [...formData.externalLinks, '']
-      })
-    }
-  }
-
-  const removeExternalLink = (index: number) => {
-    const newLinks = formData.externalLinks.filter((_, i) => i !== index)
-    setFormData({
-      ...formData,
-      externalLinks: newLinks.length === 0 ? [''] : newLinks
-    })
-  }
-
-  const updateExternalLink = (index: number, value: string) => {
-    const newLinks = [...formData.externalLinks]
-    newLinks[index] = value
-    setFormData({
-      ...formData,
-      externalLinks: newLinks
-    })
-  }
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
@@ -273,7 +245,6 @@ export function QuestCreationScreen({ questToEdit, onQuestSaved, onDiscard, onCl
           time: formData.time,
           cost: formData.cost || 'Free',
           image: questImage || undefined,
-          externalLinks: formData.externalLinks.filter(link => link.trim() !== '')
         }
         
         await updateQuest(questToEdit.id, questUpdateData)
@@ -297,8 +268,7 @@ export function QuestCreationScreen({ questToEdit, onQuestSaved, onDiscard, onCl
           organizerUid: user.uid,
           organizerName: user.displayName || 'Anonymous',
           isEpic: true,
-          image: questImage || 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxhZHZlbnR1cmUlMjB0cmVra2luZ3xlbnwwfHx8fDE3NTY0Njg0MDJ8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral',
-          externalLinks: formData.externalLinks.filter(link => link.trim() !== '')
+          image: questImage || undefined
         }
         
         const result = await createQuest(questCreateData)
@@ -337,7 +307,7 @@ export function QuestCreationScreen({ questToEdit, onQuestSaved, onDiscard, onCl
     // Check if form has any data
     const hasFormData = formData.title || formData.description || formData.category || 
                        formData.city || formData.area || formData.date || formData.time || 
-                       formData.cost || questImage || formData.externalLinks.some(link => link.trim())
+                       formData.cost || questImage
 
     if (hasFormData) {
       if (window.confirm('Are you sure you want to discard your changes? All unsaved changes will be lost.')) {
@@ -701,64 +671,6 @@ export function QuestCreationScreen({ questToEdit, onQuestSaved, onDiscard, onCl
                 </div>
               )}
             </div>
-          </div>
-
-          {/* External Links */}
-          <div className="hud-card p-6 space-y-5">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <Link className="w-5 h-5 text-neon-orange" />
-                <h2 className="text-lg font-bold text-foreground">External Links</h2>
-              </div>
-              {formData.externalLinks.length < 3 && (
-                <button
-                  type="button"
-                  onClick={addExternalLink}
-                  className="px-3 py-1 bg-gradient-to-r from-neon-orange to-neon-red text-white text-sm rounded-full font-medium hover:scale-105 active:scale-95 transition-all"
-                >
-                  + Add Link
-                </button>
-              )}
-            </div>
-
-            <div className="space-y-3">
-              {formData.externalLinks.map((link, index) => (
-                <div key={index} className="flex items-center gap-2">
-                  <input
-                    type="url"
-                    placeholder={`External link ${index + 1} (e.g., event page, booking site, etc.)`}
-                    value={link}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                      updateExternalLink(index, e.target.value)
-                    }}
-                    onMouseDown={(e) => {
-                      e.stopPropagation()
-                      e.currentTarget.focus()
-                    }}
-                    onTouchStart={(e) => {
-                      e.stopPropagation()
-                      e.currentTarget.focus()
-                    }}
-                    className="flex-1 p-3 rounded-lg border border-border bg-input-background text-foreground placeholder-muted-foreground focus:border-neon-orange focus:ring-2 focus:ring-neon-orange/20 transition-all"
-                    style={{ pointerEvents: 'auto', position: 'relative', zIndex: 10 }}
-                    tabIndex={0}
-                  />
-                  {formData.externalLinks.length > 1 && (
-                    <button
-                      type="button"
-                      onClick={() => removeExternalLink(index)}
-                      className="w-10 h-10 bg-destructive/10 hover:bg-destructive/20 text-destructive rounded-lg flex items-center justify-center transition-all"
-                    >
-                      <X className="w-4 h-4" />
-                    </button>
-                  )}
-                </div>
-              ))}
-            </div>
-            
-            <p className="text-xs text-muted-foreground">
-              🔗 Add useful links like event pages, booking sites, or related content (up to 3 links)
-            </p>
           </div>
 
           {/* Action Buttons */}
