@@ -238,6 +238,15 @@ export function ProfileCreationScreen({ onProfileComplete, onExit, existingProfi
                   onChange={(e) => handleInputChange('username', e.target.value)}
                   placeholder="Choose your quest name"
                   className="mt-1"
+                  onMouseDown={(e) => {
+                    e.stopPropagation()
+                    e.currentTarget.focus()
+                  }}
+                  onTouchStart={(e) => {
+                    e.stopPropagation()
+                    e.currentTarget.focus()
+                  }}
+                  style={{ pointerEvents: 'auto', position: 'relative', zIndex: 10 }}
                 />
               </div>
 
@@ -256,6 +265,15 @@ export function ProfileCreationScreen({ onProfileComplete, onExit, existingProfi
                     min="13"
                     max="100"
                     className="mt-1"
+                    onMouseDown={(e) => {
+                      e.stopPropagation()
+                      e.currentTarget.focus()
+                    }}
+                    onTouchStart={(e) => {
+                      e.stopPropagation()
+                      e.currentTarget.focus()
+                    }}
+                    style={{ pointerEvents: 'auto', position: 'relative', zIndex: 10 }}
                   />
                 </div>
 
@@ -265,10 +283,13 @@ export function ProfileCreationScreen({ onProfileComplete, onExit, existingProfi
                     City
                   </Label>
                   <Select value={formData.city} onValueChange={(value) => handleInputChange('city', value)}>
-                    <SelectTrigger className="mt-1">
+                    <SelectTrigger 
+                      className="mt-1"
+                      style={{ pointerEvents: 'auto', position: 'relative', zIndex: 10 }}
+                    >
                       <SelectValue placeholder="Select your city" />
                     </SelectTrigger>
-                    <SelectContent className="max-h-60">
+                    <SelectContent className="max-h-60" style={{ zIndex: 9999 }}>
                       {indianCities.map((city) => (
                         <SelectItem key={city} value={city}>
                           🏙️ {city}
@@ -285,10 +306,13 @@ export function ProfileCreationScreen({ onProfileComplete, onExit, existingProfi
                   Gender
                 </Label>
                 <Select value={formData.gender} onValueChange={(value) => handleInputChange('gender', value)}>
-                  <SelectTrigger className="mt-1">
+                  <SelectTrigger 
+                    className="mt-1"
+                    style={{ pointerEvents: 'auto', position: 'relative', zIndex: 10 }}
+                  >
                     <SelectValue placeholder="Select your gender" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent style={{ zIndex: 9999 }}>
                     {genderOptions.map((option) => (
                       <SelectItem key={option} value={option}>
                         {option}
@@ -353,6 +377,15 @@ export function ProfileCreationScreen({ onProfileComplete, onExit, existingProfi
                 placeholder="Tell us about yourself, your interests, what kind of quests you're looking for, or anything else you'd like fellow quest seekers to know! Be creative - this is your chance to shine! ✨"
                 rows={6}
                 className="mt-1 resize-none"
+                onMouseDown={(e) => {
+                  e.stopPropagation()
+                  e.currentTarget.focus()
+                }}
+                onTouchStart={(e) => {
+                  e.stopPropagation()
+                  e.currentTarget.focus()
+                }}
+                style={{ pointerEvents: 'auto', position: 'relative', zIndex: 10 }}
               />
               <div className="flex justify-between mt-2">
                 <p className="text-xs text-muted-foreground">

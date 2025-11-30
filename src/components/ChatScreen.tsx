@@ -522,7 +522,15 @@ export function ChatScreen({ chatId, questTitle, onBack, onLeaveChat }: ChatScre
                 placeholder="Type a message..."
                 className="w-full resize-none rounded-lg border border-border bg-input-background text-foreground placeholder-muted-foreground focus:border-neon-cyan focus:ring-2 focus:ring-neon-cyan/20 transition-all p-2 mobile-form-input"
                 rows={1}
-                style={{ minHeight: '36px', maxHeight: '120px', fontSize: '16px' }}
+                style={{ minHeight: '36px', maxHeight: '120px', fontSize: '16px', pointerEvents: 'auto', position: 'relative', zIndex: 10 }}
+                onMouseDown={(e) => {
+                  e.stopPropagation()
+                  e.currentTarget.focus()
+                }}
+                onTouchStart={(e) => {
+                  e.stopPropagation()
+                  e.currentTarget.focus()
+                }}
               />
             </div>
 

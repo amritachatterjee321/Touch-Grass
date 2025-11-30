@@ -189,6 +189,15 @@ export function QuestManageModal({ isOpen, onClose, quest, onSave, onDelete }: Q
                 onChange={(e) => setEditedQuest(prev => ({ ...prev, title: e.target.value }))}
                 placeholder="Enter quest title..."
                 className="gaming-filter border-muted-foreground/20 focus:border-neon-cyan"
+                onMouseDown={(e) => {
+                  e.stopPropagation()
+                  e.currentTarget.focus()
+                }}
+                onTouchStart={(e) => {
+                  e.stopPropagation()
+                  e.currentTarget.focus()
+                }}
+                style={{ pointerEvents: 'auto', position: 'relative', zIndex: 10 }}
               />
             </div>
 
@@ -203,6 +212,15 @@ export function QuestManageModal({ isOpen, onClose, quest, onSave, onDelete }: Q
                 placeholder="Describe your quest..."
                 rows={3}
                 className="gaming-filter border-muted-foreground/20 focus:border-neon-cyan resize-none"
+                onMouseDown={(e) => {
+                  e.stopPropagation()
+                  e.currentTarget.focus()
+                }}
+                onTouchStart={(e) => {
+                  e.stopPropagation()
+                  e.currentTarget.focus()
+                }}
+                style={{ pointerEvents: 'auto', position: 'relative', zIndex: 10 }}
               />
             </div>
 
@@ -245,6 +263,15 @@ export function QuestManageModal({ isOpen, onClose, quest, onSave, onDelete }: Q
                 onChange={(e) => setEditedQuest(prev => ({ ...prev, location: e.target.value }))}
                 placeholder="Where will this happen?"
                 className="gaming-filter border-muted-foreground/20 focus:border-neon-cyan"
+                onMouseDown={(e) => {
+                  e.stopPropagation()
+                  e.currentTarget.focus()
+                }}
+                onTouchStart={(e) => {
+                  e.stopPropagation()
+                  e.currentTarget.focus()
+                }}
+                style={{ pointerEvents: 'auto', position: 'relative', zIndex: 10 }}
               />
             </div>
 
@@ -259,6 +286,15 @@ export function QuestManageModal({ isOpen, onClose, quest, onSave, onDelete }: Q
                   value={editedQuest.date}
                   onChange={(e) => setEditedQuest(prev => ({ ...prev, date: e.target.value }))}
                   className="gaming-filter border-muted-foreground/20 focus:border-neon-cyan"
+                  onMouseDown={(e) => {
+                    e.stopPropagation()
+                    e.currentTarget.focus()
+                  }}
+                  onTouchStart={(e) => {
+                    e.stopPropagation()
+                    e.currentTarget.focus()
+                  }}
+                  style={{ pointerEvents: 'auto', position: 'relative', zIndex: 10 }}
                 />
               </div>
               
@@ -271,6 +307,15 @@ export function QuestManageModal({ isOpen, onClose, quest, onSave, onDelete }: Q
                   value={editedQuest.time}
                   onChange={(e) => setEditedQuest(prev => ({ ...prev, time: e.target.value }))}
                   className="gaming-filter border-muted-foreground/20 focus:border-neon-cyan"
+                  onMouseDown={(e) => {
+                    e.stopPropagation()
+                    e.currentTarget.focus()
+                  }}
+                  onTouchStart={(e) => {
+                    e.stopPropagation()
+                    e.currentTarget.focus()
+                  }}
+                  style={{ pointerEvents: 'auto', position: 'relative', zIndex: 10 }}
                 />
               </div>
             </div>

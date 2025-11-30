@@ -109,8 +109,16 @@ export function ContactSupportScreen({ onBack }: ContactSupportScreenProps) {
               onChange={(e) => setSubject(e.target.value)}
               placeholder="Brief description of your issue"
               className="w-full p-3 bg-input-background border border-border rounded-lg text-foreground placeholder-muted-foreground focus:border-neon-cyan focus:outline-none transition-colors mobile-form-input"
-              style={{ fontSize: '16px' }}
+              style={{ fontSize: '16px', pointerEvents: 'auto', position: 'relative', zIndex: 10 }}
               maxLength={100}
+              onMouseDown={(e) => {
+                e.stopPropagation()
+                e.currentTarget.focus()
+              }}
+              onTouchStart={(e) => {
+                e.stopPropagation()
+                e.currentTarget.focus()
+              }}
             />
             <p className="text-xs text-muted-foreground">{subject.length}/100 characters</p>
           </div>
@@ -126,8 +134,16 @@ export function ContactSupportScreen({ onBack }: ContactSupportScreenProps) {
               placeholder="Please provide detailed information about your issue or question. Include any relevant quest IDs, usernames, or error messages."
               rows={6}
               className="w-full p-3 bg-input-background border border-border rounded-lg text-foreground placeholder-muted-foreground focus:border-neon-cyan focus:outline-none transition-colors resize-none mobile-form-input"
-              style={{ fontSize: '16px' }}
+              style={{ fontSize: '16px', pointerEvents: 'auto', position: 'relative', zIndex: 10 }}
               maxLength={1000}
+              onMouseDown={(e) => {
+                e.stopPropagation()
+                e.currentTarget.focus()
+              }}
+              onTouchStart={(e) => {
+                e.stopPropagation()
+                e.currentTarget.focus()
+              }}
             />
             <p className="text-xs text-muted-foreground">{message.length}/1000 characters</p>
           </div>

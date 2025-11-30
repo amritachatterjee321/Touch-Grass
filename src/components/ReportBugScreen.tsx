@@ -126,8 +126,16 @@ export function ReportBugScreen({ onBack }: ReportBugScreenProps) {
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Short, descriptive title for the bug"
               className="w-full p-3 bg-input-background border border-border rounded-lg text-foreground placeholder-muted-foreground focus:border-neon-cyan focus:outline-none transition-colors mobile-form-input"
-              style={{ fontSize: '16px' }}
+              style={{ fontSize: '16px', pointerEvents: 'auto', position: 'relative', zIndex: 10 }}
               maxLength={80}
+              onMouseDown={(e) => {
+                e.stopPropagation()
+                e.currentTarget.focus()
+              }}
+              onTouchStart={(e) => {
+                e.stopPropagation()
+                e.currentTarget.focus()
+              }}
             />
             <p className="text-xs text-muted-foreground">{title.length}/80 characters</p>
           </div>
@@ -143,8 +151,16 @@ export function ReportBugScreen({ onBack }: ReportBugScreenProps) {
               placeholder="Describe what happened, what you expected to happen, and any error messages you saw."
               rows={4}
               className="w-full p-3 bg-input-background border border-border rounded-lg text-foreground placeholder-muted-foreground focus:border-neon-cyan focus:outline-none transition-colors resize-none mobile-form-input"
-              style={{ fontSize: '16px' }}
+              style={{ fontSize: '16px', pointerEvents: 'auto', position: 'relative', zIndex: 10 }}
               maxLength={500}
+              onMouseDown={(e) => {
+                e.stopPropagation()
+                e.currentTarget.focus()
+              }}
+              onTouchStart={(e) => {
+                e.stopPropagation()
+                e.currentTarget.focus()
+              }}
             />
             <p className="text-xs text-muted-foreground">{description.length}/500 characters</p>
           </div>
@@ -160,8 +176,16 @@ export function ReportBugScreen({ onBack }: ReportBugScreenProps) {
               placeholder="1. Go to...&#10;2. Tap on...&#10;3. See error..."
               rows={4}
               className="w-full p-3 bg-input-background border border-border rounded-lg text-foreground placeholder-muted-foreground focus:border-neon-cyan focus:outline-none transition-colors resize-none mobile-form-input"
-              style={{ fontSize: '16px' }}
+              style={{ fontSize: '16px', pointerEvents: 'auto', position: 'relative', zIndex: 10 }}
               maxLength={400}
+              onMouseDown={(e) => {
+                e.stopPropagation()
+                e.currentTarget.focus()
+              }}
+              onTouchStart={(e) => {
+                e.stopPropagation()
+                e.currentTarget.focus()
+              }}
             />
             <p className="text-xs text-muted-foreground">{stepsToReproduce.length}/400 characters</p>
           </div>

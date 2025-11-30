@@ -79,8 +79,16 @@ export function CitySelector({ selectedCity, onCityChange }: CitySelectorProps) 
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full p-3 bg-input-background border border-input rounded-md text-foreground placeholder-muted-foreground focus:border-neon-cyan focus:outline-none transition-colors mobile-form-input"
-                  style={{ fontSize: '16px' }}
+                  style={{ fontSize: '16px', pointerEvents: 'auto', position: 'relative', zIndex: 10 }}
                   autoFocus
+                  onMouseDown={(e) => {
+                    e.stopPropagation()
+                    e.currentTarget.focus()
+                  }}
+                  onTouchStart={(e) => {
+                    e.stopPropagation()
+                    e.currentTarget.focus()
+                  }}
                 />
               </div>
 
