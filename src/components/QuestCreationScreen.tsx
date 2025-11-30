@@ -214,8 +214,14 @@ export function QuestCreationScreen({ questToEdit, onQuestSaved, onDiscard, onCl
     }
   }
 
-  const handleImageClick = () => {
-    fileInputRef.current?.click()
+  const handleImageClick = (e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault()
+      e.stopPropagation()
+    }
+    if (fileInputRef.current) {
+      fileInputRef.current.click()
+    }
   }
 
   const addExternalLink = () => {
@@ -393,10 +399,19 @@ export function QuestCreationScreen({ questToEdit, onQuestSaved, onDiscard, onCl
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                   setFormData({...formData, title: e.target.value})
                 }}
+                onMouseDown={(e) => {
+                  e.stopPropagation()
+                  e.currentTarget.focus()
+                }}
+                onTouchStart={(e) => {
+                  e.stopPropagation()
+                  e.currentTarget.focus()
+                }}
                 className="w-full p-4 rounded-lg border border-border bg-white text-black placeholder-gray-500 focus:border-neon-cyan focus:ring-2 focus:ring-neon-cyan/20 transition-all mobile-form-input"
-                style={{ fontSize: '16px' }}
+                style={{ fontSize: '16px', pointerEvents: 'auto', position: 'relative', zIndex: 10 }}
                 required
                 autoFocus
+                tabIndex={0}
               />
             </div>
 
@@ -410,9 +425,18 @@ export function QuestCreationScreen({ questToEdit, onQuestSaved, onDiscard, onCl
                 onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => {
                   setFormData({...formData, description: e.target.value})
                 }}
+                onMouseDown={(e) => {
+                  e.stopPropagation()
+                  e.currentTarget.focus()
+                }}
+                onTouchStart={(e) => {
+                  e.stopPropagation()
+                  e.currentTarget.focus()
+                }}
                 className="w-full p-4 rounded-lg border border-border bg-white text-black placeholder-gray-500 focus:border-neon-cyan focus:ring-2 focus:ring-neon-cyan/20 transition-all min-h-[100px] resize-none mobile-form-input"
-                style={{ fontSize: '16px' }}
+                style={{ fontSize: '16px', pointerEvents: 'auto', position: 'relative', zIndex: 10 }}
                 required
+                tabIndex={0}
               />
             </div>
 
@@ -421,10 +445,13 @@ export function QuestCreationScreen({ questToEdit, onQuestSaved, onDiscard, onCl
                 Pick your quest type *
               </label>
               <Select value={formData.category} onValueChange={(value: string) => setFormData({...formData, category: value})}>
-                <SelectTrigger className="w-full p-4 rounded-lg border border-border bg-input-background text-foreground focus:border-neon-cyan focus:ring-2 focus:ring-neon-cyan/20 transition-all">
+                <SelectTrigger 
+                  className="w-full p-4 rounded-lg border border-border bg-input-background text-foreground focus:border-neon-cyan focus:ring-2 focus:ring-neon-cyan/20 transition-all"
+                  style={{ pointerEvents: 'auto', position: 'relative', zIndex: 10 }}
+                >
                   <SelectValue placeholder="Choose your adventure type..." />
                 </SelectTrigger>
-                <SelectContent className="bg-card border border-border rounded-lg shadow-lg">
+                <SelectContent className="bg-card border border-border rounded-lg shadow-lg" style={{ zIndex: 9999 }}>
                   {categories.map((category) => (
                     <SelectItem 
                       key={category} 
@@ -457,10 +484,13 @@ export function QuestCreationScreen({ questToEdit, onQuestSaved, onDiscard, onCl
                 City *
               </label>
               <Select value={formData.city} onValueChange={(value: string) => setFormData({...formData, city: value})}>
-                <SelectTrigger className="w-full p-4 rounded-lg border border-border bg-input-background text-foreground focus:border-neon-cyan focus:ring-2 focus:ring-neon-cyan/20 transition-all">
+                <SelectTrigger 
+                  className="w-full p-4 rounded-lg border border-border bg-input-background text-foreground focus:border-neon-cyan focus:ring-2 focus:ring-neon-cyan/20 transition-all"
+                  style={{ pointerEvents: 'auto', position: 'relative', zIndex: 10 }}
+                >
                   <SelectValue placeholder="Select your city..." />
                 </SelectTrigger>
-                <SelectContent className="bg-card border border-border rounded-lg shadow-lg max-h-60">
+                <SelectContent className="bg-card border border-border rounded-lg shadow-lg max-h-60" style={{ zIndex: 9999 }}>
                   {cities.map((city) => (
                     <SelectItem 
                       key={city} 
@@ -486,10 +516,23 @@ export function QuestCreationScreen({ questToEdit, onQuestSaved, onDiscard, onCl
                 onChange={(e) => {
                   setFormData({...formData, area: e.target.value})
                 }}
+                onMouseDown={(e) => {
+                  e.stopPropagation()
+                  if (!e.currentTarget.disabled) {
+                    e.currentTarget.focus()
+                  }
+                }}
+                onTouchStart={(e) => {
+                  e.stopPropagation()
+                  if (!e.currentTarget.disabled) {
+                    e.currentTarget.focus()
+                  }
+                }}
                 className="w-full p-4 rounded-lg border border-border bg-white text-black placeholder-gray-500 focus:border-neon-cyan focus:ring-2 focus:ring-neon-cyan/20 transition-all mobile-form-input"
-                style={{ fontSize: '16px' }}
+                style={{ fontSize: '16px', pointerEvents: 'auto', position: 'relative', zIndex: 10 }}
                 required
                 disabled={!formData.city}
+                tabIndex={0}
               />
               <p className="text-xs text-muted-foreground mt-1">
                 💡 Be specific! Include landmarks, metro stations, or popular spots
@@ -507,9 +550,19 @@ export function QuestCreationScreen({ questToEdit, onQuestSaved, onDiscard, onCl
                   onChange={(e) => {
                     setFormData({...formData, date: e.target.value})
                   }}
+                  onMouseDown={(e) => {
+                    e.stopPropagation()
+                    e.currentTarget.focus()
+                  }}
+                  onTouchStart={(e) => {
+                    e.stopPropagation()
+                    e.currentTarget.focus()
+                  }}
                   className="w-full p-4 rounded-lg border border-border bg-input-background text-foreground focus:border-neon-cyan focus:ring-2 focus:ring-neon-cyan/20 transition-all"
+                  style={{ pointerEvents: 'auto', position: 'relative', zIndex: 10 }}
                   min={new Date().toISOString().split('T')[0]}
                   required
+                  tabIndex={0}
                 />
               </div>
 
@@ -524,8 +577,18 @@ export function QuestCreationScreen({ questToEdit, onQuestSaved, onDiscard, onCl
                   onChange={(e) => {
                     setFormData({...formData, time: e.target.value})
                   }}
+                  onMouseDown={(e) => {
+                    e.stopPropagation()
+                    e.currentTarget.focus()
+                  }}
+                  onTouchStart={(e) => {
+                    e.stopPropagation()
+                    e.currentTarget.focus()
+                  }}
                   className="w-full p-4 rounded-lg border border-border bg-input-background text-foreground focus:border-neon-cyan focus:ring-2 focus:ring-neon-cyan/20 transition-all"
+                  style={{ pointerEvents: 'auto', position: 'relative', zIndex: 10 }}
                   required
+                  tabIndex={0}
                 />
               </div>
             </div>
@@ -550,8 +613,17 @@ export function QuestCreationScreen({ questToEdit, onQuestSaved, onDiscard, onCl
                 onChange={(e) => {
                   setFormData({...formData, cost: e.target.value})
                 }}
+                onMouseDown={(e) => {
+                  e.stopPropagation()
+                  e.currentTarget.focus()
+                }}
+                onTouchStart={(e) => {
+                  e.stopPropagation()
+                  e.currentTarget.focus()
+                }}
                 className="w-full p-4 rounded-lg border border-border bg-input-background text-foreground placeholder-muted-foreground focus:border-neon-cyan focus:ring-2 focus:ring-neon-cyan/20 transition-all mobile-form-input"
-                style={{ fontSize: '16px' }}
+                style={{ fontSize: '16px', pointerEvents: 'auto', position: 'relative', zIndex: 10 }}
+                tabIndex={0}
               />
               <p className="text-xs text-muted-foreground mt-1">
                 💡 Type "FREE" if there's no cost!
@@ -590,9 +662,7 @@ export function QuestCreationScreen({ questToEdit, onQuestSaved, onDiscard, onCl
                 <div 
                   className="border-2 border-dashed border-border hover:border-neon-purple transition-colors rounded-lg p-8 cursor-pointer"
                   onClick={handleImageClick}
-                  onMouseDown={(e) => {
-                    e.stopPropagation()
-                  }}
+                  style={{ pointerEvents: 'auto', position: 'relative', zIndex: 10 }}
                 >
                   <div className="text-center">
                     <Upload className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
@@ -600,9 +670,14 @@ export function QuestCreationScreen({ questToEdit, onQuestSaved, onDiscard, onCl
                       type="button"
                       className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-neon-purple to-neon-pink text-white rounded-lg font-medium cursor-pointer transition-all hover:scale-105 active:scale-95"
                       onClick={(e) => {
+                        e.preventDefault()
                         e.stopPropagation()
-                        handleImageClick()
+                        handleImageClick(e)
                       }}
+                      onMouseDown={(e) => {
+                        e.stopPropagation()
+                      }}
+                      style={{ pointerEvents: 'auto', position: 'relative', zIndex: 11 }}
                     >
                       <Camera className="w-4 h-4" />
                       Choose Image
@@ -617,6 +692,7 @@ export function QuestCreationScreen({ questToEdit, onQuestSaved, onDiscard, onCl
                         e.stopPropagation()
                       }}
                       className="hidden"
+                      style={{ pointerEvents: 'auto' }}
                     />
                     <p className="text-xs text-muted-foreground mt-2">
                       📷 Max 10MB • JPG, PNG, WEBP supported
@@ -655,7 +731,17 @@ export function QuestCreationScreen({ questToEdit, onQuestSaved, onDiscard, onCl
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                       updateExternalLink(index, e.target.value)
                     }}
+                    onMouseDown={(e) => {
+                      e.stopPropagation()
+                      e.currentTarget.focus()
+                    }}
+                    onTouchStart={(e) => {
+                      e.stopPropagation()
+                      e.currentTarget.focus()
+                    }}
                     className="flex-1 p-3 rounded-lg border border-border bg-input-background text-foreground placeholder-muted-foreground focus:border-neon-orange focus:ring-2 focus:ring-neon-orange/20 transition-all"
+                    style={{ pointerEvents: 'auto', position: 'relative', zIndex: 10 }}
+                    tabIndex={0}
                   />
                   {formData.externalLinks.length > 1 && (
                     <button
