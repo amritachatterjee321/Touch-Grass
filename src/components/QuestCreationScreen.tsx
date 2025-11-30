@@ -393,13 +393,7 @@ export function QuestCreationScreen({ questToEdit, onQuestSaved, onDiscard, onCl
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                   setFormData({...formData, title: e.target.value})
                 }}
-                onMouseDown={(e) => {
-                  e.currentTarget.focus()
-                }}
-                onTouchStart={(e) => {
-                  e.currentTarget.focus()
-                }}
-                className="w-full p-4 rounded-lg border border-border bg-white text-black placeholder-gray-500 focus:border-neon-cyan focus:ring-2 focus:ring-neon-cyan/20 transition-all mobile-form-input cursor-text"
+                className="w-full p-4 rounded-lg border border-border bg-white text-black placeholder-gray-500 focus:border-neon-cyan focus:ring-2 focus:ring-neon-cyan/20 transition-all mobile-form-input"
                 style={{ fontSize: '16px' }}
                 required
                 autoFocus
@@ -416,13 +410,7 @@ export function QuestCreationScreen({ questToEdit, onQuestSaved, onDiscard, onCl
                 onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => {
                   setFormData({...formData, description: e.target.value})
                 }}
-                onMouseDown={(e) => {
-                  e.currentTarget.focus()
-                }}
-                onTouchStart={(e) => {
-                  e.currentTarget.focus()
-                }}
-                className="w-full p-4 rounded-lg border border-border bg-white text-black placeholder-gray-500 focus:border-neon-cyan focus:ring-2 focus:ring-neon-cyan/20 transition-all min-h-[100px] resize-none mobile-form-input cursor-text"
+                className="w-full p-4 rounded-lg border border-border bg-white text-black placeholder-gray-500 focus:border-neon-cyan focus:ring-2 focus:ring-neon-cyan/20 transition-all min-h-[100px] resize-none mobile-form-input"
                 style={{ fontSize: '16px' }}
                 required
               />
@@ -498,17 +486,7 @@ export function QuestCreationScreen({ questToEdit, onQuestSaved, onDiscard, onCl
                 onChange={(e) => {
                   setFormData({...formData, area: e.target.value})
                 }}
-                onMouseDown={(e) => {
-                  if (!e.currentTarget.disabled) {
-                    e.currentTarget.focus()
-                  }
-                }}
-                onTouchStart={(e) => {
-                  if (!e.currentTarget.disabled) {
-                    e.currentTarget.focus()
-                  }
-                }}
-                className="w-full p-4 rounded-lg border border-border bg-white text-black placeholder-gray-500 focus:border-neon-cyan focus:ring-2 focus:ring-neon-cyan/20 transition-all mobile-form-input cursor-text"
+                className="w-full p-4 rounded-lg border border-border bg-white text-black placeholder-gray-500 focus:border-neon-cyan focus:ring-2 focus:ring-neon-cyan/20 transition-all mobile-form-input"
                 style={{ fontSize: '16px' }}
                 required
                 disabled={!formData.city}
@@ -529,13 +507,7 @@ export function QuestCreationScreen({ questToEdit, onQuestSaved, onDiscard, onCl
                   onChange={(e) => {
                     setFormData({...formData, date: e.target.value})
                   }}
-                  onMouseDown={(e) => {
-                    e.currentTarget.focus()
-                  }}
-                  onTouchStart={(e) => {
-                    e.currentTarget.focus()
-                  }}
-                  className="w-full p-4 rounded-lg border border-border bg-input-background text-foreground focus:border-neon-cyan focus:ring-2 focus:ring-neon-cyan/20 transition-all cursor-pointer"
+                  className="w-full p-4 rounded-lg border border-border bg-input-background text-foreground focus:border-neon-cyan focus:ring-2 focus:ring-neon-cyan/20 transition-all"
                   min={new Date().toISOString().split('T')[0]}
                   required
                 />
@@ -552,13 +524,7 @@ export function QuestCreationScreen({ questToEdit, onQuestSaved, onDiscard, onCl
                   onChange={(e) => {
                     setFormData({...formData, time: e.target.value})
                   }}
-                  onMouseDown={(e) => {
-                    e.currentTarget.focus()
-                  }}
-                  onTouchStart={(e) => {
-                    e.currentTarget.focus()
-                  }}
-                  className="w-full p-4 rounded-lg border border-border bg-input-background text-foreground focus:border-neon-cyan focus:ring-2 focus:ring-neon-cyan/20 transition-all cursor-pointer"
+                  className="w-full p-4 rounded-lg border border-border bg-input-background text-foreground focus:border-neon-cyan focus:ring-2 focus:ring-neon-cyan/20 transition-all"
                   required
                 />
               </div>
@@ -584,13 +550,7 @@ export function QuestCreationScreen({ questToEdit, onQuestSaved, onDiscard, onCl
                 onChange={(e) => {
                   setFormData({...formData, cost: e.target.value})
                 }}
-                onMouseDown={(e) => {
-                  e.currentTarget.focus()
-                }}
-                onTouchStart={(e) => {
-                  e.currentTarget.focus()
-                }}
-                className="w-full p-4 rounded-lg border border-border bg-input-background text-foreground placeholder-muted-foreground focus:border-neon-cyan focus:ring-2 focus:ring-neon-cyan/20 transition-all mobile-form-input cursor-text"
+                className="w-full p-4 rounded-lg border border-border bg-input-background text-foreground placeholder-muted-foreground focus:border-neon-cyan focus:ring-2 focus:ring-neon-cyan/20 transition-all mobile-form-input"
                 style={{ fontSize: '16px' }}
               />
               <p className="text-xs text-muted-foreground mt-1">
@@ -695,13 +655,7 @@ export function QuestCreationScreen({ questToEdit, onQuestSaved, onDiscard, onCl
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                       updateExternalLink(index, e.target.value)
                     }}
-                    onMouseDown={(e) => {
-                      e.currentTarget.focus()
-                    }}
-                    onTouchStart={(e) => {
-                      e.currentTarget.focus()
-                    }}
-                    className="flex-1 p-3 rounded-lg border border-border bg-input-background text-foreground placeholder-muted-foreground focus:border-neon-orange focus:ring-2 focus:ring-neon-orange/20 transition-all cursor-text"
+                    className="flex-1 p-3 rounded-lg border border-border bg-input-background text-foreground placeholder-muted-foreground focus:border-neon-orange focus:ring-2 focus:ring-neon-orange/20 transition-all"
                   />
                   {formData.externalLinks.length > 1 && (
                     <button
