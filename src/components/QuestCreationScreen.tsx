@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo, useRef } from "react"
 import { createPortal } from "react-dom"
 import { MapPin, Clock, DollarSign, Sparkles, Zap, Trash2, ArrowLeft, Camera, Link, X, Upload } from "lucide-react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select"
@@ -87,8 +87,24 @@ export function QuestCreationScreen({ questToEdit, onQuestSaved, onDiscard, onCl
   })
   
   const [questImage, setQuestImage] = useState<string | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const isEditMode = !!questToEdit
+
+  // Generate placeholders once on mount - they won't change on re-renders
+  const placeholders = useMemo(() => {
+    const getRandomPlaceholder = (field: keyof typeof funPlaceholders) => {
+      const options = funPlaceholders[field]
+      return options[Math.floor(Math.random() * options.length)]
+    }
+    
+    return {
+      title: getRandomPlaceholder('title'),
+      description: getRandomPlaceholder('description'),
+      area: getRandomPlaceholder('area'),
+      cost: getRandomPlaceholder('cost')
+    }
+  }, []) // Empty dependency array ensures this only runs once
 
   // Pre-populate form when editing
   useEffect(() => {
@@ -107,11 +123,6 @@ export function QuestCreationScreen({ questToEdit, onQuestSaved, onDiscard, onCl
       setQuestImage(questToEdit.image || null)
     }
   }, [questToEdit])
-
-  const getRandomPlaceholder = (field: keyof typeof funPlaceholders) => {
-    const options = funPlaceholders[field]
-    return options[Math.floor(Math.random() * options.length)]
-  }
 
   const compressImage = (file: File, maxWidth: number = 1200, maxHeight: number = 800, quality: number = 0.8): Promise<string> => {
     return new Promise((resolve, reject) => {
@@ -198,8 +209,13 @@ export function QuestCreationScreen({ questToEdit, onQuestSaved, onDiscard, onCl
 
   const removeImage = () => {
     setQuestImage(null)
-    const fileInput = document.getElementById('quest-image-upload') as HTMLInputElement
-    if (fileInput) fileInput.value = ''
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ''
+    }
+  }
+
+  const handleImageClick = () => {
+    fileInputRef.current?.click()
   }
 
   const addExternalLink = () => {
@@ -372,20 +388,18 @@ export function QuestCreationScreen({ questToEdit, onQuestSaved, onDiscard, onCl
               <input
                 type="text"
                 inputMode="text"
-                placeholder={!isEditMode ? getRandomPlaceholder('title') : ''}
+                placeholder={!isEditMode ? placeholders.title : ''}
                 value={formData.title}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                  e.stopPropagation()
                   setFormData({...formData, title: e.target.value})
                 }}
-                onFocus={(e) => {
-                  e.stopPropagation()
-                }}
-                onTouchStart={(e) => {
-                  e.stopPropagation()
+                onMouseDown={(e) => {
                   e.currentTarget.focus()
                 }}
-                className="w-full p-4 rounded-lg border border-border bg-white text-black placeholder-gray-500 focus:border-neon-cyan focus:ring-2 focus:ring-neon-cyan/20 transition-all mobile-form-input"
+                onTouchStart={(e) => {
+                  e.currentTarget.focus()
+                }}
+                className="w-full p-4 rounded-lg border border-border bg-white text-black placeholder-gray-500 focus:border-neon-cyan focus:ring-2 focus:ring-neon-cyan/20 transition-all mobile-form-input cursor-text"
                 style={{ fontSize: '16px' }}
                 required
                 autoFocus
@@ -397,20 +411,18 @@ export function QuestCreationScreen({ questToEdit, onQuestSaved, onDiscard, onCl
                 Tell us more about the adventure! *
               </label>
               <textarea
-                placeholder={!isEditMode ? getRandomPlaceholder('description') : ''}
+                placeholder={!isEditMode ? placeholders.description : ''}
                 value={formData.description}
                 onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => {
-                  e.stopPropagation()
                   setFormData({...formData, description: e.target.value})
                 }}
-                onFocus={(e) => {
-                  e.stopPropagation()
-                }}
-                onTouchStart={(e) => {
-                  e.stopPropagation()
+                onMouseDown={(e) => {
                   e.currentTarget.focus()
                 }}
-                className="w-full p-4 rounded-lg border border-border bg-white text-black placeholder-gray-500 focus:border-neon-cyan focus:ring-2 focus:ring-neon-cyan/20 transition-all min-h-[100px] resize-none mobile-form-input"
+                onTouchStart={(e) => {
+                  e.currentTarget.focus()
+                }}
+                className="w-full p-4 rounded-lg border border-border bg-white text-black placeholder-gray-500 focus:border-neon-cyan focus:ring-2 focus:ring-neon-cyan/20 transition-all min-h-[100px] resize-none mobile-form-input cursor-text"
                 style={{ fontSize: '16px' }}
                 required
               />
@@ -481,22 +493,22 @@ export function QuestCreationScreen({ questToEdit, onQuestSaved, onDiscard, onCl
               <input
                 type="text"
                 inputMode="text"
-                placeholder={!isEditMode ? getRandomPlaceholder('area') : ''}
+                placeholder={!isEditMode ? placeholders.area : ''}
                 value={formData.area}
                 onChange={(e) => {
-                  e.stopPropagation()
                   setFormData({...formData, area: e.target.value})
                 }}
-                onFocus={(e) => {
-                  e.stopPropagation()
-                }}
-                onTouchStart={(e) => {
-                  e.stopPropagation()
+                onMouseDown={(e) => {
                   if (!e.currentTarget.disabled) {
                     e.currentTarget.focus()
                   }
                 }}
-                className="w-full p-4 rounded-lg border border-border bg-white text-black placeholder-gray-500 focus:border-neon-cyan focus:ring-2 focus:ring-neon-cyan/20 transition-all mobile-form-input"
+                onTouchStart={(e) => {
+                  if (!e.currentTarget.disabled) {
+                    e.currentTarget.focus()
+                  }
+                }}
+                className="w-full p-4 rounded-lg border border-border bg-white text-black placeholder-gray-500 focus:border-neon-cyan focus:ring-2 focus:ring-neon-cyan/20 transition-all mobile-form-input cursor-text"
                 style={{ fontSize: '16px' }}
                 required
                 disabled={!formData.city}
@@ -515,17 +527,15 @@ export function QuestCreationScreen({ questToEdit, onQuestSaved, onDiscard, onCl
                   type="date"
                   value={formData.date}
                   onChange={(e) => {
-                    e.stopPropagation()
                     setFormData({...formData, date: e.target.value})
                   }}
-                  onFocus={(e) => {
-                    e.stopPropagation()
-                  }}
-                  onTouchStart={(e) => {
-                    e.stopPropagation()
+                  onMouseDown={(e) => {
                     e.currentTarget.focus()
                   }}
-                  className="w-full p-4 rounded-lg border border-border bg-input-background text-foreground focus:border-neon-cyan focus:ring-2 focus:ring-neon-cyan/20 transition-all"
+                  onTouchStart={(e) => {
+                    e.currentTarget.focus()
+                  }}
+                  className="w-full p-4 rounded-lg border border-border bg-input-background text-foreground focus:border-neon-cyan focus:ring-2 focus:ring-neon-cyan/20 transition-all cursor-pointer"
                   min={new Date().toISOString().split('T')[0]}
                   required
                 />
@@ -540,17 +550,15 @@ export function QuestCreationScreen({ questToEdit, onQuestSaved, onDiscard, onCl
                   type="time"
                   value={formData.time}
                   onChange={(e) => {
-                    e.stopPropagation()
                     setFormData({...formData, time: e.target.value})
                   }}
-                  onFocus={(e) => {
-                    e.stopPropagation()
-                  }}
-                  onTouchStart={(e) => {
-                    e.stopPropagation()
+                  onMouseDown={(e) => {
                     e.currentTarget.focus()
                   }}
-                  className="w-full p-4 rounded-lg border border-border bg-input-background text-foreground focus:border-neon-cyan focus:ring-2 focus:ring-neon-cyan/20 transition-all"
+                  onTouchStart={(e) => {
+                    e.currentTarget.focus()
+                  }}
+                  className="w-full p-4 rounded-lg border border-border bg-input-background text-foreground focus:border-neon-cyan focus:ring-2 focus:ring-neon-cyan/20 transition-all cursor-pointer"
                   required
                 />
               </div>
@@ -571,20 +579,18 @@ export function QuestCreationScreen({ questToEdit, onQuestSaved, onDiscard, onCl
               <input
                 type="text"
                 inputMode="decimal"
-                placeholder={!isEditMode ? getRandomPlaceholder('cost') : ''}
+                placeholder={!isEditMode ? placeholders.cost : ''}
                 value={formData.cost}
                 onChange={(e) => {
-                  e.stopPropagation()
                   setFormData({...formData, cost: e.target.value})
                 }}
-                onFocus={(e) => {
-                  e.stopPropagation()
-                }}
-                onTouchStart={(e) => {
-                  e.stopPropagation()
+                onMouseDown={(e) => {
                   e.currentTarget.focus()
                 }}
-                className="w-full p-4 rounded-lg border border-border bg-input-background text-foreground placeholder-muted-foreground focus:border-neon-cyan focus:ring-2 focus:ring-neon-cyan/20 transition-all mobile-form-input"
+                onTouchStart={(e) => {
+                  e.currentTarget.focus()
+                }}
+                className="w-full p-4 rounded-lg border border-border bg-input-background text-foreground placeholder-muted-foreground focus:border-neon-cyan focus:ring-2 focus:ring-neon-cyan/20 transition-all mobile-form-input cursor-text"
                 style={{ fontSize: '16px' }}
               />
               <p className="text-xs text-muted-foreground mt-1">
@@ -621,21 +627,35 @@ export function QuestCreationScreen({ questToEdit, onQuestSaved, onDiscard, onCl
                   </button>
                 </div>
               ) : (
-                <div className="border-2 border-dashed border-border hover:border-neon-purple transition-colors rounded-lg p-8">
+                <div 
+                  className="border-2 border-dashed border-border hover:border-neon-purple transition-colors rounded-lg p-8 cursor-pointer"
+                  onClick={handleImageClick}
+                  onMouseDown={(e) => {
+                    e.stopPropagation()
+                  }}
+                >
                   <div className="text-center">
                     <Upload className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                    <label 
-                      htmlFor="quest-image-upload"
+                    <button
+                      type="button"
                       className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-neon-purple to-neon-pink text-white rounded-lg font-medium cursor-pointer transition-all hover:scale-105 active:scale-95"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        handleImageClick()
+                      }}
                     >
                       <Camera className="w-4 h-4" />
                       Choose Image
-                    </label>
+                    </button>
                     <input
+                      ref={fileInputRef}
                       id="quest-image-upload"
                       type="file"
                       accept="image/*"
                       onChange={handleImageUpload}
+                      onClick={(e) => {
+                        e.stopPropagation()
+                      }}
                       className="hidden"
                     />
                     <p className="text-xs text-muted-foreground mt-2">
@@ -673,17 +693,15 @@ export function QuestCreationScreen({ questToEdit, onQuestSaved, onDiscard, onCl
                     placeholder={`External link ${index + 1} (e.g., event page, booking site, etc.)`}
                     value={link}
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                      e.stopPropagation()
                       updateExternalLink(index, e.target.value)
                     }}
-                    onFocus={(e) => {
-                      e.stopPropagation()
-                    }}
-                    onTouchStart={(e) => {
-                      e.stopPropagation()
+                    onMouseDown={(e) => {
                       e.currentTarget.focus()
                     }}
-                    className="flex-1 p-3 rounded-lg border border-border bg-input-background text-foreground placeholder-muted-foreground focus:border-neon-orange focus:ring-2 focus:ring-neon-orange/20 transition-all"
+                    onTouchStart={(e) => {
+                      e.currentTarget.focus()
+                    }}
+                    className="flex-1 p-3 rounded-lg border border-border bg-input-background text-foreground placeholder-muted-foreground focus:border-neon-orange focus:ring-2 focus:ring-neon-orange/20 transition-all cursor-text"
                   />
                   {formData.externalLinks.length > 1 && (
                     <button
