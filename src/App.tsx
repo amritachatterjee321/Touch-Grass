@@ -43,6 +43,7 @@ function AppContent() {
   const [isLoggedIn, setIsLoggedIn] = useState(false) // Track login state
   const [isGoogleLoginModalOpen, setIsGoogleLoginModalOpen] = useState(false)
   const [pendingQuestCreation, setPendingQuestCreation] = useState(false) // Track if quest creation was requested before login
+  const [pendingNavigationTab, setPendingNavigationTab] = useState<'my-quests' | 'chats' | 'profile' | null>(null) // Track which tab user wanted to navigate to
   const [existingProfileData, setExistingProfileData] = useState<any>(null)
   const [isEditingProfile, setIsEditingProfile] = useState(false)
   const [userProfile, setUserProfile] = useState<any>(null)
@@ -94,6 +95,23 @@ function AppContent() {
   }
 
   const handleNavigation = (tab: 'board' | 'my-quests' | 'chats' | 'profile') => {
+    // Allow 'board' tab for logged-out users
+    if (tab === 'board') {
+      setActiveScreen(tab)
+      setQuestToEdit(null)
+      setActiveChatId(null)
+      return
+    }
+    
+    // For 'my-quests', 'chats', or 'profile', check if user is logged in
+    if (!user && (tab === 'my-quests' || tab === 'chats' || tab === 'profile')) {
+      // User is logged out, open login modal and store the desired tab
+      setPendingNavigationTab(tab)
+      setIsGoogleLoginModalOpen(true)
+      return
+    }
+    
+    // User is logged in, proceed with navigation
     setActiveScreen(tab)
     setQuestToEdit(null) // Clear edit mode when navigating
     setActiveChatId(null) // Clear chat when navigating
@@ -260,10 +278,14 @@ function AppContent() {
         description: "Welcome to TouchGrass!"
       })
       
-      // Check if user originally wanted to create a quest
+      // Check if user originally wanted to create a quest or navigate to a tab
       if (pendingQuestCreation) {
         setPendingQuestCreation(false) // Clear the pending flag
         setActiveScreen('create-quest') // Redirect to quest creation after profile completion
+      } else if (pendingNavigationTab) {
+        const tab = pendingNavigationTab
+        setPendingNavigationTab(null) // Clear the pending flag
+        setActiveScreen(tab) // Navigate to the requested tab after profile completion
       } else if (isEditingProfile) {
         setIsEditingProfile(false) // Clear the edit flag
         setActiveScreen('settings') // Navigate back to settings after editing
@@ -365,9 +387,60 @@ function AppContent() {
     }
   }
 
+  const handleGoogleLoginForNavigation = async () => {
+    try {
+      const { user } = await signInWithGoogle()
+      if (user) {
+        toast.success(`Welcome, ${user.displayName || 'User'}! 🎉`)
+        setIsGoogleLoginModalOpen(false)
+        
+        // Check if user needs profile completion before navigation
+        setTimeout(async () => {
+          const profile = await getUserProfile(user.uid)
+          if (!profile || !profile.isProfileCompleted) {
+            console.log('📱 User needs profile completion before navigation')
+            setActiveScreen('profile-creation')
+          } else {
+            console.log('📱 User profile ready, navigating to requested tab')
+            // Navigate to the tab the user originally wanted
+            if (pendingNavigationTab) {
+              setActiveScreen(pendingNavigationTab)
+              setPendingNavigationTab(null)
+            }
+          }
+        }, 500)
+      }
+    } catch (error: any) {
+      console.error('Google login error:', error)
+      setIsGoogleLoginModalOpen(false)
+      // Don't show error if user cancelled the popup
+      if (error.code !== 'auth/cancelled-popup-request' && error.code !== 'auth/popup-closed-by-user') {
+        toast.error(error.message || 'Failed to sign in')
+      }
+    }
+  }
+
+  const handleMockLoginForNavigation = async () => {
+    try {
+      console.log('🎭 Mock login success - closing modal and navigating')
+      setIsGoogleLoginModalOpen(false)
+      
+      // For mock users, navigate directly to the requested tab
+      if (pendingNavigationTab) {
+        setActiveScreen(pendingNavigationTab)
+        setPendingNavigationTab(null)
+      }
+      
+      toast.success('Mock login successful! 🎉')
+    } catch (error: any) {
+      console.error('Mock login success handler error:', error)
+    }
+  }
+
   const handleCloseGoogleLoginModal = () => {
     setIsGoogleLoginModalOpen(false)
     setPendingQuestCreation(false) // Clear pending quest flag if cancelled
+    setPendingNavigationTab(null) // Clear pending navigation tab if cancelled
     // Navigate back to board if they cancel
     setActiveScreen('board')
   }
@@ -390,8 +463,7 @@ function AppContent() {
         />
       case 'my-quests':
         if (!user) {
-          toast.error('Please log in to view your quests')
-          setActiveScreen('board')
+          // This shouldn't happen since handleNavigation prevents it, but keep as fallback
           return <QuestBoard 
             isProfileCompleted={isProfileCompleted} 
             onStartProfileCreation={() => setActiveScreen('profile-creation')} 
@@ -413,8 +485,7 @@ function AppContent() {
         />
       case 'chats':
         if (!user) {
-          toast.error('Please log in to view chats')
-          setActiveScreen('board')
+          // This shouldn't happen since handleNavigation prevents it, but keep as fallback
           return <QuestBoard 
             isProfileCompleted={isProfileCompleted} 
             onStartProfileCreation={() => setActiveScreen('profile-creation')} 
@@ -450,8 +521,7 @@ function AppContent() {
         ) : <Chats onOpenChat={handleOpenChat} userUid={user?.uid} />
       case 'profile':
         if (!user) {
-          toast.error('Please log in to view your profile')
-          setActiveScreen('board')
+          // This shouldn't happen since handleNavigation prevents it, but keep as fallback
           return <QuestBoard 
             isProfileCompleted={isProfileCompleted} 
             onStartProfileCreation={() => setActiveScreen('profile-creation')} 
@@ -679,6 +749,18 @@ function AppContent() {
         <BottomNavigation 
           activeTab={activeScreen === 'create-quest' ? 'my-quests' : (activeScreen as 'board' | 'my-quests' | 'chats' | 'profile')} 
           onTabChange={handleNavigation}
+        />
+      )}
+      
+      {/* Global Login Modal for Navigation (not quest creation) */}
+      {isGoogleLoginModalOpen && pendingNavigationTab && !pendingQuestCreation && (
+        <GoogleLoginModal
+          isOpen={isGoogleLoginModalOpen}
+          onClose={handleCloseGoogleLoginModal}
+          onLoginSuccess={handleGoogleLoginForNavigation}
+          onMockLoginSuccess={handleMockLoginForNavigation}
+          actionType='join'
+          questTitle={pendingNavigationTab === 'my-quests' ? 'View Quests' : pendingNavigationTab === 'chats' ? 'View Chats' : 'View Profile'}
         />
       )}
       
