@@ -631,12 +631,12 @@ function AppContent() {
         }
       `}</style>
       
-      {!['chat-detail', 'profile-creation', 'notifications', 'settings', 'chat-debug', 'populate-data', 'quest-feedback', 'quest-approval', 'faq', 'contact-support', 'report-bug', 'privacy-policy', 'terms-of-service'].includes(activeScreen) && <GameHeader onOpenNotifications={handleOpenNotifications} onOpenSettings={handleOpenSettings} onOpenChatDebug={handleOpenChatDebug} onOpenPopulateData={handleOpenPopulateData} />}
+      {!['chat-detail', 'profile-creation', 'notifications', 'settings', 'chat-debug', 'populate-data', 'quest-feedback', 'quest-approval', 'faq', 'contact-support', 'report-bug', 'privacy-policy', 'terms-of-service'].includes(activeScreen) && <GameHeader onOpenNotifications={handleOpenNotifications} onOpenSettings={handleOpenSettings} />}
       <main 
         className={`${!['chat-detail', 'profile-creation', 'notifications', 'settings', 'chat-debug', 'populate-data', 'quest-feedback', 'quest-approval', 'faq', 'contact-support', 'report-bug', 'privacy-policy', 'terms-of-service'].includes(activeScreen) ? 'pb-24' : 'pb-0'} px-0`}
         style={{
           paddingTop: !['chat-detail', 'profile-creation', 'notifications', 'settings', 'chat-debug', 'populate-data', 'quest-feedback', 'quest-approval', 'faq', 'contact-support', 'report-bug', 'privacy-policy', 'terms-of-service'].includes(activeScreen) 
-            ? 'calc(16px + env(safe-area-inset-top) + 80px)' 
+            ? 'calc(16px + env(safe-area-inset-top) + 64px)' 
             : '0px'
         }}
       >

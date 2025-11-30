@@ -4,6 +4,7 @@ import { Button } from "./ui/button"
 import { Switch } from "./ui/switch"
 import { toast } from "sonner"
 import { ImageWithFallback } from "./figma/ImageWithFallback"
+import { useFirebase } from "../contexts/FirebaseContext"
 
 interface SettingsScreenProps {
   onBack: () => void
@@ -37,6 +38,7 @@ const mockUserData = {
 }
 
 export function SettingsScreen({ onBack, onEditProfile, onLogout, onDeleteAccount, onOpenFAQ, onOpenContactSupport, onOpenReportBug, onOpenPrivacyPolicy, onOpenTermsOfService }: SettingsScreenProps) {
+  const { isMockUser } = useFirebase()
   const [notifications, setNotifications] = useState({
     pushNotifications: true,
     questUpdates: true,
@@ -55,13 +57,25 @@ export function SettingsScreen({ onBack, onEditProfile, onLogout, onDeleteAccoun
     toast.success("Notification preference updated")
   }
 
-
-
-  const handleLogout = () => {
-    toast.success("Logged out successfully")
-    setTimeout(() => {
-      onLogout()
-    }, 1000)
+  const handleLogout = async () => {
+    try {
+      // Handle mock user logout
+      if (isMockUser) {
+        // Remove mock user from localStorage
+        localStorage.removeItem('mockUser')
+        // Dispatch logout event to update Firebase context
+        window.dispatchEvent(new CustomEvent('mockUserLogout'))
+        // Call onLogout to update app state (it will show success toast)
+        // Note: onLogout will try to sign out from Firebase, which is safe even for mock users
+        await onLogout()
+      } else {
+        // For real Firebase users, call the onLogout prop which handles Firebase sign out
+        await onLogout()
+      }
+    } catch (error: any) {
+      console.error('Logout error:', error)
+      toast.error(error.message || 'Failed to logout')
+    }
   }
 
   const handleDeleteAccount = () => {
