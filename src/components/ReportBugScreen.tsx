@@ -121,10 +121,12 @@ export function ReportBugScreen({ onBack }: ReportBugScreenProps) {
             </label>
             <input
               type="text"
+              inputMode="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Short, descriptive title for the bug"
-              className="w-full p-3 bg-input-background border border-border rounded-lg text-foreground placeholder-muted-foreground focus:border-neon-cyan focus:outline-none transition-colors"
+              className="w-full p-3 bg-input-background border border-border rounded-lg text-foreground placeholder-muted-foreground focus:border-neon-cyan focus:outline-none transition-colors mobile-form-input"
+              style={{ fontSize: '16px' }}
               maxLength={80}
             />
             <p className="text-xs text-muted-foreground">{title.length}/80 characters</p>
@@ -140,7 +142,8 @@ export function ReportBugScreen({ onBack }: ReportBugScreenProps) {
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Describe what happened, what you expected to happen, and any error messages you saw."
               rows={4}
-              className="w-full p-3 bg-input-background border border-border rounded-lg text-foreground placeholder-muted-foreground focus:border-neon-cyan focus:outline-none transition-colors resize-none"
+              className="w-full p-3 bg-input-background border border-border rounded-lg text-foreground placeholder-muted-foreground focus:border-neon-cyan focus:outline-none transition-colors resize-none mobile-form-input"
+              style={{ fontSize: '16px' }}
               maxLength={500}
             />
             <p className="text-xs text-muted-foreground">{description.length}/500 characters</p>
@@ -156,7 +159,8 @@ export function ReportBugScreen({ onBack }: ReportBugScreenProps) {
               onChange={(e) => setStepsToReproduce(e.target.value)}
               placeholder="1. Go to...&#10;2. Tap on...&#10;3. See error..."
               rows={4}
-              className="w-full p-3 bg-input-background border border-border rounded-lg text-foreground placeholder-muted-foreground focus:border-neon-cyan focus:outline-none transition-colors resize-none"
+              className="w-full p-3 bg-input-background border border-border rounded-lg text-foreground placeholder-muted-foreground focus:border-neon-cyan focus:outline-none transition-colors resize-none mobile-form-input"
+              style={{ fontSize: '16px' }}
               maxLength={400}
             />
             <p className="text-xs text-muted-foreground">{stepsToReproduce.length}/400 characters</p>

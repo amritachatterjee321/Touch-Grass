@@ -371,10 +371,12 @@ export function QuestCreationScreen({ questToEdit, onQuestSaved, onDiscard, onCl
               </label>
               <input
                 type="text"
+                inputMode="text"
                 placeholder={!isEditMode ? getRandomPlaceholder('title') : ''}
                 value={formData.title}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({...formData, title: e.target.value})}
-                className="w-full p-4 rounded-lg border border-border bg-white text-black placeholder-gray-500 focus:border-neon-cyan focus:ring-2 focus:ring-neon-cyan/20 transition-all"
+                className="w-full p-4 rounded-lg border border-border bg-white text-black placeholder-gray-500 focus:border-neon-cyan focus:ring-2 focus:ring-neon-cyan/20 transition-all mobile-form-input"
+                style={{ fontSize: '16px' }}
                 required
                 autoFocus
               />
@@ -388,7 +390,8 @@ export function QuestCreationScreen({ questToEdit, onQuestSaved, onDiscard, onCl
                 placeholder={!isEditMode ? getRandomPlaceholder('description') : ''}
                 value={formData.description}
                 onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setFormData({...formData, description: e.target.value})}
-                className="w-full p-4 rounded-lg border border-border bg-white text-black placeholder-gray-500 focus:border-neon-cyan focus:ring-2 focus:ring-neon-cyan/20 transition-all min-h-[100px] resize-none"
+                className="w-full p-4 rounded-lg border border-border bg-white text-black placeholder-gray-500 focus:border-neon-cyan focus:ring-2 focus:ring-neon-cyan/20 transition-all min-h-[100px] resize-none mobile-form-input"
+                style={{ fontSize: '16px' }}
                 required
               />
             </div>
@@ -457,10 +460,12 @@ export function QuestCreationScreen({ questToEdit, onQuestSaved, onDiscard, onCl
               </label>
               <input
                 type="text"
+                inputMode="text"
                 placeholder={!isEditMode ? getRandomPlaceholder('area') : ''}
                 value={formData.area}
                 onChange={(e) => setFormData({...formData, area: e.target.value})}
-                className="w-full p-4 rounded-lg border border-border bg-white text-black placeholder-gray-500 focus:border-neon-cyan focus:ring-2 focus:ring-neon-cyan/20 transition-all"
+                className="w-full p-4 rounded-lg border border-border bg-white text-black placeholder-gray-500 focus:border-neon-cyan focus:ring-2 focus:ring-neon-cyan/20 transition-all mobile-form-input"
+                style={{ fontSize: '16px' }}
                 required
                 disabled={!formData.city}
               />
@@ -513,10 +518,12 @@ export function QuestCreationScreen({ questToEdit, onQuestSaved, onDiscard, onCl
               </label>
               <input
                 type="text"
+                inputMode="decimal"
                 placeholder={!isEditMode ? getRandomPlaceholder('cost') : ''}
                 value={formData.cost}
                 onChange={(e) => setFormData({...formData, cost: e.target.value})}
-                className="w-full p-4 rounded-lg border border-border bg-input-background text-foreground placeholder-muted-foreground focus:border-neon-cyan focus:ring-2 focus:ring-neon-cyan/20 transition-all"
+                className="w-full p-4 rounded-lg border border-border bg-input-background text-foreground placeholder-muted-foreground focus:border-neon-cyan focus:ring-2 focus:ring-neon-cyan/20 transition-all mobile-form-input"
+                style={{ fontSize: '16px' }}
               />
               <p className="text-xs text-muted-foreground mt-1">
                 💡 Type "FREE" if there's no cost!

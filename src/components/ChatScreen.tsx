@@ -498,14 +498,16 @@ export function ChatScreen({ chatId, questTitle, onBack, onLeaveChat }: ChatScre
             <div className="flex gap-1">
               <button
                 onClick={() => setShowImageOptions(!showImageOptions)}
-                className="p-2 rounded-lg hover:bg-muted transition-colors"
+                className="p-2 rounded-lg hover:bg-muted transition-colors touch-manipulation active:scale-[0.95]"
+                style={{ WebkitTapHighlightColor: 'transparent', touchAction: 'manipulation' }}
               >
                 <Image className="w-5 h-5 text-neon-purple" />
               </button>
               
               <button
                 onClick={handleShareLocation}
-                className="p-2 rounded-lg hover:bg-muted transition-colors"
+                className="p-2 rounded-lg hover:bg-muted transition-colors touch-manipulation active:scale-[0.95]"
+                style={{ WebkitTapHighlightColor: 'transparent', touchAction: 'manipulation' }}
               >
                 <MapPin className="w-5 h-5 text-neon-green" />
               </button>
@@ -518,9 +520,9 @@ export function ChatScreen({ chatId, questTitle, onBack, onLeaveChat }: ChatScre
                 onChange={(e) => setNewMessage(e.target.value)}
                 onKeyPress={handleKeyPress}
                 placeholder="Type a message..."
-                className="w-full resize-none rounded-lg border border-border bg-input-background text-foreground placeholder-muted-foreground focus:border-neon-cyan focus:ring-2 focus:ring-neon-cyan/20 transition-all p-2 text-sm"
+                className="w-full resize-none rounded-lg border border-border bg-input-background text-foreground placeholder-muted-foreground focus:border-neon-cyan focus:ring-2 focus:ring-neon-cyan/20 transition-all p-2 mobile-form-input"
                 rows={1}
-                style={{ minHeight: '36px', maxHeight: '120px' }}
+                style={{ minHeight: '36px', maxHeight: '120px', fontSize: '16px' }}
               />
             </div>
 
@@ -528,7 +530,8 @@ export function ChatScreen({ chatId, questTitle, onBack, onLeaveChat }: ChatScre
             <button
               onClick={handleSendMessage}
               disabled={!newMessage.trim() || sending}
-              className="p-2 rounded-lg neon-button disabled:opacity-50 disabled:cursor-not-allowed"
+              className="p-2 rounded-lg neon-button disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation active:scale-[0.95]"
+              style={{ WebkitTapHighlightColor: 'transparent', touchAction: 'manipulation' }}
             >
               {sending ? (
                 <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />

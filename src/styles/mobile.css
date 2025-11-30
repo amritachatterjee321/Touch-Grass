@@ -75,6 +75,18 @@
     min-width: 44px;
   }
 
+  /* Ensure all buttons are touch-responsive */
+  button {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    cursor: pointer;
+  }
+
+  /* Ensure buttons have proper active states for touch feedback */
+  button:active {
+    transform: scale(0.98);
+  }
+
   /* Improved scrolling for mobile */
   .mobile-scroll {
     -webkit-overflow-scrolling: touch;

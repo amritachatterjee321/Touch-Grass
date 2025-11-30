@@ -96,7 +96,8 @@ export function SettingsScreen({ onBack, onEditProfile, onLogout, onDeleteAccoun
           <div className="flex items-center gap-3 mb-3">
             <button
               onClick={onBack}
-              className="w-10 h-10 rounded-full bg-input-background border border-border hover:border-neon-cyan transition-colors flex items-center justify-center"
+              className="w-10 h-10 rounded-full bg-input-background border border-border hover:border-neon-cyan transition-colors flex items-center justify-center touch-manipulation active:scale-[0.95]"
+              style={{ WebkitTapHighlightColor: 'transparent', touchAction: 'manipulation' }}
             >
               <ArrowLeft className="w-5 h-5 text-muted-foreground hover:text-neon-cyan transition-colors" />
             </button>
@@ -128,7 +129,9 @@ export function SettingsScreen({ onBack, onEditProfile, onLogout, onDeleteAccoun
                   <User className="w-8 h-8 text-neon-cyan" />
                 )}
               </div>
-              <button className="absolute -bottom-1 -right-1 w-8 h-8 rounded-full bg-neon-orange hover:bg-neon-orange/80 transition-colors flex items-center justify-center border-2 border-white">
+              <button className="absolute -bottom-1 -right-1 w-8 h-8 rounded-full bg-neon-orange hover:bg-neon-orange/80 transition-colors flex items-center justify-center border-2 border-white touch-manipulation active:scale-[0.95]"
+                style={{ WebkitTapHighlightColor: 'transparent', touchAction: 'manipulation' }}
+              >
                 <Camera className="w-4 h-4 text-white" />
               </button>
             </div>
@@ -148,7 +151,8 @@ export function SettingsScreen({ onBack, onEditProfile, onLogout, onDeleteAccoun
 
             <button
               onClick={onEditProfile}
-              className="gaming-filter px-4 py-2 font-bold hover:border-neon-cyan hover:text-neon-cyan transition-all uppercase tracking-wider flex items-center justify-center gap-2"
+              className="gaming-filter px-4 py-2 font-bold hover:border-neon-cyan hover:text-neon-cyan transition-all uppercase tracking-wider flex items-center justify-center gap-2 touch-manipulation active:scale-[0.98]"
+              style={{ WebkitTapHighlightColor: 'transparent', touchAction: 'manipulation' }}
             >
               <Edit className="w-4 h-4" />
               EDIT

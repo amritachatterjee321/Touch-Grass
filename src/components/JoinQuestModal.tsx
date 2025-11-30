@@ -127,7 +127,8 @@ export function JoinQuestModal({ isOpen, onClose, quest, userProfile, onJoinSucc
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
                 placeholder="Hey! I'd love to join your quest! I'm really into coffee exploration and would love to meet fellow enthusiasts. Looking forward to discovering some hidden gems together! ☕✨"
-                className="w-full p-4 rounded-lg border border-border bg-input-background text-foreground placeholder-muted-foreground focus:border-neon-cyan focus:ring-2 focus:ring-neon-cyan/20 transition-all min-h-[120px] resize-none"
+                className="w-full p-4 rounded-lg border border-border bg-input-background text-foreground placeholder-muted-foreground focus:border-neon-cyan focus:ring-2 focus:ring-neon-cyan/20 transition-all min-h-[120px] resize-none mobile-form-input"
+                style={{ fontSize: '16px' }}
                 required
                 disabled={isSubmitting}
               />

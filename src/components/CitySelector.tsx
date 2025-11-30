@@ -74,10 +74,12 @@ export function CitySelector({ selectedCity, onCityChange }: CitySelectorProps) 
               <div className="p-4 border-b border-muted/20">
                 <input
                   type="text"
+                  inputMode="search"
                   placeholder="Search cities..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full p-3 bg-input-background border border-input rounded-md text-foreground placeholder-muted-foreground focus:border-neon-cyan focus:outline-none transition-colors"
+                  className="w-full p-3 bg-input-background border border-input rounded-md text-foreground placeholder-muted-foreground focus:border-neon-cyan focus:outline-none transition-colors mobile-form-input"
+                  style={{ fontSize: '16px' }}
                   autoFocus
                 />
               </div>
