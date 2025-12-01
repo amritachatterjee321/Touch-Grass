@@ -75,9 +75,10 @@ interface ProfileScreenProps {
   isProfileCompleted?: boolean
   onStartProfileCreation?: () => void
   onEditProfile?: () => void
+  refreshTrigger?: number
 }
 
-export function ProfileScreen({ isProfileCompleted = true, onStartProfileCreation }: ProfileScreenProps) {
+export function ProfileScreen({ isProfileCompleted = true, onStartProfileCreation, refreshTrigger }: ProfileScreenProps) {
   const { user } = useFirebase()
   const [userProfile, setUserProfile] = useState<any>(null)
   const [questsJoined, setQuestsJoined] = useState(0)
@@ -89,14 +90,25 @@ export function ProfileScreen({ isProfileCompleted = true, onStartProfileCreatio
     const fetchUserData = async () => {
       if (!user) {
         setIsLoading(false)
+        setUserProfile(null)
+        setQuestsJoined(0)
+        setQuestsOrganized(0)
         return
       }
 
       try {
         setIsLoading(true)
+        console.log('🔄 Fetching user profile data for:', user.uid)
         
         // Fetch user profile
         const profile = await getUserProfile(user.uid)
+        console.log('📋 Profile data fetched:', profile ? {
+          username: profile.username,
+          displayName: profile.displayName,
+          bio: profile.bio,
+          isProfileCompleted: profile.isProfileCompleted
+        } : 'No profile found')
+        
         setUserProfile(profile)
 
         // Fetch quests organized by user
@@ -110,7 +122,8 @@ export function ProfileScreen({ isProfileCompleted = true, onStartProfileCreatio
         console.log('📊 Profile Stats:', {
           questsJoined: joinedQuests.length,
           questsOrganized: organizedQuests.length,
-          level: profile?.level || 1
+          level: profile?.level || 1,
+          username: profile?.username || profile?.displayName || 'Unknown'
         })
       } catch (error) {
         console.error('❌ Error fetching user data:', error)
@@ -120,7 +133,7 @@ export function ProfileScreen({ isProfileCompleted = true, onStartProfileCreatio
     }
 
     fetchUserData()
-  }, [user])
+  }, [user, refreshTrigger]) // Add refreshTrigger as dependency
 
   // Calculate profile data for display
   const profileData = {

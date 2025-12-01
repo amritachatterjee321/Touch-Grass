@@ -1,10 +1,12 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { ArrowLeft, User, Settings, Bell, HelpCircle, LogOut, Trash2, Edit, Camera } from "lucide-react"
 import { Button } from "./ui/button"
 import { Switch } from "./ui/switch"
 import { toast } from "sonner"
 import { ImageWithFallback } from "./figma/ImageWithFallback"
 import { useFirebase } from "../contexts/FirebaseContext"
+import { getUserProfile } from "../firebase/users"
+import { getUserQuests, getUserJoinedQuests } from "../firebase/quests"
 
 interface SettingsScreenProps {
   onBack: () => void
@@ -16,29 +18,15 @@ interface SettingsScreenProps {
   onOpenReportBug: () => void
   onOpenPrivacyPolicy: () => void
   onOpenTermsOfService: () => void
+  refreshTrigger?: number
 }
 
-// Mock user data - in real app this would come from user context/state
-const mockUserData = {
-  username: "QuestMaster_Arjun",
-  fullName: "Arjun Kumar",
-  email: "arjun.kumar@example.com",
-  phone: "+91 98765 43210",
-  age: 28,
-  gender: "Male",
-  city: "Bangalore",
-  joinedDate: "2024-01-15",
-  bio: "Adventure enthusiast and coffee lover! Always looking for new experiences and great people to share them with. Love exploring hidden gems around the city! 🌟",
-  profileImage: null,
-  interests: ["Adventure", "Coffee", "Photography", "Gaming", "Food & Drinks"],
-  completedQuests: 47,
-  organizedQuests: 12,
-  rating: 4.8,
-  level: "Explorer"
-}
-
-export function SettingsScreen({ onBack, onEditProfile, onLogout, onDeleteAccount, onOpenFAQ, onOpenContactSupport, onOpenReportBug, onOpenPrivacyPolicy, onOpenTermsOfService }: SettingsScreenProps) {
-  const { isMockUser } = useFirebase()
+export function SettingsScreen({ onBack, onEditProfile, onLogout, onDeleteAccount, onOpenFAQ, onOpenContactSupport, onOpenReportBug, onOpenPrivacyPolicy, onOpenTermsOfService, refreshTrigger }: SettingsScreenProps) {
+  const { user, isMockUser } = useFirebase()
+  const [userProfile, setUserProfile] = useState<any>(null)
+  const [completedQuests, setCompletedQuests] = useState(0)
+  const [organizedQuests, setOrganizedQuests] = useState(0)
+  const [isLoading, setIsLoading] = useState(true)
   const [notifications, setNotifications] = useState({
     pushNotifications: true,
     questUpdates: true,
@@ -48,6 +36,108 @@ export function SettingsScreen({ onBack, onEditProfile, onLogout, onDeleteAccoun
   })
 
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
+
+  // Fetch user profile and quest data
+  useEffect(() => {
+    const fetchUserData = async () => {
+      if (!user) {
+        setIsLoading(false)
+        setUserProfile(null)
+        setCompletedQuests(0)
+        setOrganizedQuests(0)
+        return
+      }
+
+      try {
+        setIsLoading(true)
+        console.log('🔄 SettingsScreen: Fetching user data for:', user.uid)
+        
+        // Fetch user profile
+        const profile = await getUserProfile(user.uid)
+        console.log('📋 SettingsScreen: Profile fetched:', profile ? {
+          username: profile.username,
+          displayName: profile.displayName,
+          email: profile.email
+        } : 'No profile found')
+        
+        setUserProfile(profile)
+
+        // Fetch quests organized by user
+        let organizedCount = 0
+        try {
+          const organizedQuestsList = await getUserQuests(user.uid)
+          organizedCount = organizedQuestsList.length
+          setOrganizedQuests(organizedCount)
+        } catch (questError: any) {
+          console.error('⚠️ SettingsScreen: Error fetching organized quests:', questError)
+          // If it's an index error, show a helpful message but don't break the UI
+          if (questError.message?.includes('index')) {
+            console.warn('⚠️ Firestore index required. Please create the index using the link in the console.')
+            // Set to 0 as fallback - the index can be created later
+            setOrganizedQuests(0)
+          } else {
+            setOrganizedQuests(0)
+          }
+        }
+
+        // Fetch quests joined by user
+        let joinedCount = 0
+        try {
+          const joinedQuestsList = await getUserJoinedQuests(user.uid)
+          joinedCount = joinedQuestsList.length
+          setCompletedQuests(joinedCount)
+        } catch (questError: any) {
+          console.error('⚠️ SettingsScreen: Error fetching joined quests:', questError)
+          setCompletedQuests(0)
+        }
+
+        console.log('📊 SettingsScreen: Stats:', {
+          completedQuests: joinedCount,
+          organizedQuests: organizedCount
+        })
+      } catch (error) {
+        console.error('❌ SettingsScreen: Error fetching user data:', error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchUserData()
+  }, [user, refreshTrigger]) // Add refreshTrigger as dependency
+
+  // Calculate user data for display
+  const userData = {
+    username: userProfile?.username || userProfile?.displayName || user?.displayName || 'User',
+    fullName: userProfile?.displayName || user?.displayName || 'User',
+    email: userProfile?.email || user?.email || '',
+    age: userProfile?.age || 0,
+    gender: userProfile?.gender || '',
+    city: userProfile?.city || '',
+    joinedDate: (() => {
+      try {
+        if (userProfile?.createdAt) {
+          // Handle both Date objects and Firestore Timestamps
+          const date = userProfile.createdAt instanceof Date 
+            ? userProfile.createdAt 
+            : userProfile.createdAt?.toDate 
+              ? userProfile.createdAt.toDate() 
+              : new Date(userProfile.createdAt)
+          return date.toISOString().split('T')[0]
+        }
+        return new Date().toISOString().split('T')[0]
+      } catch (error) {
+        console.error('Error parsing joinedDate:', error)
+        return new Date().toISOString().split('T')[0]
+      }
+    })(),
+    bio: userProfile?.bio || '',
+    profileImage: userProfile?.profileImage || userProfile?.photoURL || user?.photoURL || null,
+    interests: userProfile?.interests || [],
+    completedQuests: completedQuests,
+    organizedQuests: organizedQuests,
+    rating: 4.8, // This would come from a ratings system
+    level: userProfile?.level ? `Level ${userProfile.level}` : 'Explorer'
+  }
 
   const handleNotificationToggle = (key: keyof typeof notifications) => {
     setNotifications(prev => ({
@@ -86,6 +176,28 @@ export function SettingsScreen({ onBack, onEditProfile, onLogout, onDeleteAccoun
     }, 2000)
   }
 
+  // Calculate years since joining safely
+  const calculateYearsSinceJoining = () => {
+    try {
+      const joinedYear = new Date(userData.joinedDate).getFullYear()
+      const currentYear = new Date().getFullYear()
+      return Math.max(0, currentYear - joinedYear)
+    } catch (error) {
+      console.error('Error calculating years:', error)
+      return 0
+    }
+  }
+
+  // Debug logging
+  console.log('🔍 SettingsScreen render:', {
+    hasUser: !!user,
+    userId: user?.uid,
+    isLoading,
+    hasProfile: !!userProfile,
+    completedQuests,
+    organizedQuests
+  })
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -119,10 +231,10 @@ export function SettingsScreen({ onBack, onEditProfile, onLogout, onDeleteAccoun
           <div className="flex items-center gap-4 mb-6">
             <div className="relative">
               <div className="w-20 h-20 rounded-full border-2 border-neon-cyan bg-input-background flex items-center justify-center overflow-hidden">
-                {mockUserData.profileImage ? (
+                {userData.profileImage ? (
                   <ImageWithFallback 
-                    src={mockUserData.profileImage} 
-                    alt={mockUserData.username}
+                    src={userData.profileImage} 
+                    alt={userData.username}
                     className="w-full h-full object-cover"
                   />
                 ) : (
@@ -137,14 +249,20 @@ export function SettingsScreen({ onBack, onEditProfile, onLogout, onDeleteAccoun
             </div>
 
             <div className="flex-1">
-              <h3 className="text-xl font-bold text-foreground mb-1">{mockUserData.username}</h3>
-              <p className="text-sm text-muted-foreground mb-2">{mockUserData.fullName}</p>
+              <h3 className="text-xl font-bold text-foreground mb-1">
+                {isLoading ? '...' : userData.username}
+              </h3>
+              <p className="text-sm text-muted-foreground mb-2">
+                {isLoading ? '...' : userData.fullName}
+              </p>
               <div className="flex items-center gap-2">
                 <div className="px-3 py-1 bg-gradient-to-r from-neon-cyan/20 to-neon-purple/20 border border-neon-cyan/30 rounded-full">
-                  <span className="text-xs font-bold text-neon-cyan uppercase tracking-wider">{mockUserData.level}</span>
+                  <span className="text-xs font-bold text-neon-cyan uppercase tracking-wider">
+                    {isLoading ? '...' : userData.level}
+                  </span>
                 </div>
                 <div className="px-3 py-1 bg-gradient-to-r from-neon-green/20 to-neon-cyan/20 border border-neon-green/30 rounded-full">
-                  <span className="text-xs font-bold text-neon-green">⭐ {mockUserData.rating}</span>
+                  <span className="text-xs font-bold text-neon-green">⭐ {userData.rating}</span>
                 </div>
               </div>
             </div>
@@ -162,16 +280,20 @@ export function SettingsScreen({ onBack, onEditProfile, onLogout, onDeleteAccoun
           {/* Quick Stats */}
           <div className="grid grid-cols-3 gap-4">
             <div className="text-center">
-              <div className="text-2xl font-bold text-foreground">{mockUserData.completedQuests}</div>
+              <div className="text-2xl font-bold text-foreground">
+                {isLoading ? '...' : userData.completedQuests}
+              </div>
               <div className="text-xs text-muted-foreground uppercase tracking-wide">Completed</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-foreground">{mockUserData.organizedQuests}</div>
+              <div className="text-2xl font-bold text-foreground">
+                {isLoading ? '...' : userData.organizedQuests}
+              </div>
               <div className="text-xs text-muted-foreground uppercase tracking-wide">Organized</div>
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold text-foreground">
-                {new Date().getFullYear() - new Date(mockUserData.joinedDate).getFullYear()}
+                {isLoading ? '...' : calculateYearsSinceJoining()}
               </div>
               <div className="text-xs text-muted-foreground uppercase tracking-wide">Years</div>
             </div>

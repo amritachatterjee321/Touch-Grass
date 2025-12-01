@@ -5,6 +5,8 @@ import { toast } from "sonner"
 import { X } from "lucide-react"
 import { Badge } from "./ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar"
+import { signInWithGoogle } from "../firebase/auth"
+import { getUserProfile, createUserProfile } from "../firebase/users"
 
 interface GoogleLoginModalProps {
   isOpen: boolean
@@ -69,22 +71,161 @@ export function GoogleLoginModal({
     setIsLoggingIn(true)
     
     try {
-      console.log('Initiating Google login...')
+      console.log('🔄 Initiating Google login...')
       
-      // Call the parent's login handler
-      await onLoginSuccess()
+      // Call Firebase Google sign-in directly
+      const { user } = await signInWithGoogle()
       
-      // Modal will be closed by parent on success
+      if (user) {
+        console.log('✅ Google login successful:', user.email)
+        toast.success(`Welcome, ${user.displayName || 'User'}! 🎉`)
+        
+        // Check if this is a first-time user (no profile or incomplete profile)
+        try {
+          const profile = await getUserProfile(user.uid)
+          const isFirstTimeUser = !profile || !profile.isProfileCompleted
+          
+          if (isFirstTimeUser) {
+            console.log('👤 First-time user detected - creating basic profile and redirecting to profile creation')
+            
+            // Create a basic profile document in Firestore immediately after Google login
+            // This ensures the account exists in Firestore even before profile completion
+            try {
+              console.log('🔄 Creating basic user profile in Firestore...')
+              console.log('👤 User object:', { uid: user.uid, email: user.email, displayName: user.displayName })
+              
+              const createdProfile = await createUserProfile(user, {
+                email: user.email || '',
+                displayName: user.displayName || '',
+                photoURL: user.photoURL || null,
+                isProfileCompleted: false
+              })
+              
+              console.log('✅ Basic user profile created in Firestore:', createdProfile)
+            } catch (profileCreateError: any) {
+              console.error('❌ CRITICAL: Error creating basic profile:', profileCreateError)
+              console.error('❌ Error details:', {
+                code: profileCreateError.code,
+                message: profileCreateError.message,
+                stack: profileCreateError.stack
+              })
+              
+              // Show error to user
+              toast.error('Failed to create user account', {
+                description: profileCreateError.message || 'Please try again or contact support'
+              })
+              
+              // Don't continue - this is a critical error
+              setIsLoggingIn(false)
+              return
+            }
+            
+            // Don't call onLoginSuccess for first-time users
+            // The parent component will handle navigation to profile creation
+            // via the useEffect that checks profile completion
+            onClose()
+            // Trigger a custom event to notify parent that login succeeded
+            // and profile creation is needed
+            window.dispatchEvent(new CustomEvent('googleLoginSuccess', { 
+              detail: { userId: user.uid, needsProfile: true } 
+            }))
+            return
+          } else {
+            console.log('👤 Returning user - profile already completed')
+            // Dispatch general login success event for returning users
+            window.dispatchEvent(new CustomEvent('generalGoogleLoginSuccess'))
+            // Call the parent's success handler for returning users (if provided)
+            if (onLoginSuccess) {
+              await onLoginSuccess()
+            }
+          }
+        } catch (profileError: any) {
+          console.error('⚠️ Error checking profile:', profileError)
+          // If we can't check profile, assume first-time user and create basic profile
+          console.log('👤 Assuming first-time user due to profile check error - creating basic profile')
+          
+          try {
+            console.log('🔄 Creating basic user profile in Firestore (fallback)...')
+            console.log('👤 User object:', { uid: user.uid, email: user.email, displayName: user.displayName })
+            
+            const createdProfile = await createUserProfile(user, {
+              email: user.email || '',
+              displayName: user.displayName || '',
+              photoURL: user.photoURL || null,
+              isProfileCompleted: false
+            })
+            
+            console.log('✅ Basic user profile created in Firestore (fallback):', createdProfile)
+          } catch (profileCreateError: any) {
+            console.error('❌ CRITICAL: Error creating basic profile (fallback):', profileCreateError)
+            console.error('❌ Error details:', {
+              code: profileCreateError.code,
+              message: profileCreateError.message,
+              stack: profileCreateError.stack
+            })
+            
+            // Show error to user
+            toast.error('Failed to create user account', {
+              description: profileCreateError.message || 'Please try again or contact support'
+            })
+            
+            // Don't continue - this is a critical error
+            setIsLoggingIn(false)
+            return
+          }
+          
+          onClose()
+          window.dispatchEvent(new CustomEvent('googleLoginSuccess', { 
+            detail: { userId: user.uid, needsProfile: true } 
+          }))
+          return
+        }
+        
+        // Close modal after successful login
+        onClose()
+        setIsLoggingIn(false) // Reset loading state
+      } else {
+        setIsLoggingIn(false) // Reset loading state
+        throw new Error('No user returned from Google sign-in')
+      }
       
     } catch (error: any) {
-      console.error('Google login failed:', error)
-      // Don't show error toast if user cancelled
-      if (error.code !== 'auth/cancelled-popup-request' && error.code !== 'auth/popup-closed-by-user') {
-        toast.error("Login failed", {
-          description: error.message || "Please try again or contact support if the issue persists."
-        })
+      console.error('❌ Google login failed:', error)
+      setIsLoggingIn(false) // Always reset loading state on error
+      
+      // Don't show error toast if user cancelled or if sign-in is already in progress
+      if (error.code === 'auth/cancelled-popup-request' || 
+          error.code === 'auth/popup-closed-by-user' ||
+          error.message?.includes('cancelled') ||
+          error.message?.includes('closed') ||
+          error.message?.includes('already in progress')) {
+        console.log('ℹ️ User cancelled Google login or sign-in already in progress')
+        return
       }
-      setIsLoggingIn(false)
+      
+      // Handle specific Firebase Auth errors
+      let errorMessage = "Login failed"
+      let errorDescription = "Please try again or contact support if the issue persists."
+      
+      if (error.code === 'auth/popup-blocked') {
+        errorMessage = "Popup blocked"
+        errorDescription = "Please allow popups for this site and try again."
+      } else if (error.code === 'auth/network-request-failed') {
+        errorMessage = "Network error"
+        errorDescription = "Please check your internet connection and try again."
+      } else if (error.code === 'auth/unauthorized-domain') {
+        errorMessage = "Unauthorized domain"
+        errorDescription = "This domain is not authorized for Google sign-in. Please contact support."
+      } else if (error.code === 'auth/operation-not-allowed') {
+        errorMessage = "Sign-in method not enabled"
+        errorDescription = "Google sign-in is not enabled. Please contact support."
+      } else if (error.message) {
+        errorDescription = error.message
+      }
+      
+      toast.error(errorMessage, {
+        description: errorDescription
+      })
     }
   }
 

@@ -129,7 +129,36 @@ export const getUserQuests = async (userUid: string) => {
     const querySnapshot = await getDocs(questQuery)
     return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Quest))
   } catch (error: any) {
+    // If index error, try without orderBy as fallback
+    if (error.message?.includes('index') || error.code === 'failed-precondition') {
+      console.warn('⚠️ Firestore index not found, falling back to query without orderBy')
+      try {
+        const questQuery = query(
+          questsRef, 
+          where('organizerUid', '==', userUid)
+        )
+        const querySnapshot = await getDocs(questQuery)
+        return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Quest))
+      } catch (fallbackError: any) {
+        throw new Error(error.message || 'Failed to fetch user quests. Please create the required Firestore index.')
+      }
+    }
     throw new Error(error.message || 'Failed to fetch user quests')
+  }
+}
+
+// Get count of user's created quests (simpler query, no index needed)
+export const getUserQuestsCount = async (userUid: string) => {
+  try {
+    const questQuery = query(
+      questsRef, 
+      where('organizerUid', '==', userUid)
+    )
+    const querySnapshot = await getDocs(questQuery)
+    return querySnapshot.size
+  } catch (error: any) {
+    console.error('Error getting user quests count:', error)
+    return 0
   }
 }
 

@@ -66,25 +66,10 @@ export const FirebaseProvider = ({ children }: FirebaseProviderProps) => {
   }, [])
 
   useEffect(() => {
-    // Check for mock user in localStorage on app start
-    const checkMockUser = () => {
-      const mockUserData = localStorage.getItem('mockUser')
-      if (mockUserData) {
-        try {
-          const mockUser = JSON.parse(mockUserData)
-          setUser(mockUser as User)
-          setIsMockUser(true)
-          setLoading(false)
-          return
-        } catch (error) {
-          console.error('Error parsing mock user data:', error)
-          localStorage.removeItem('mockUser')
-        }
-      }
-    }
-
-    // Check for mock user first
-    checkMockUser()
+    // Clear any existing mock user from localStorage on app start
+    // This ensures the app always starts with no user logged in
+    localStorage.removeItem('mockUser')
+    console.log('🧹 Cleared any existing mock user on app start')
 
     // Listen for authentication state changes
     const unsubscribe = onAuthStateChange((user) => {
@@ -111,8 +96,16 @@ export const FirebaseProvider = ({ children }: FirebaseProviderProps) => {
     window.addEventListener('mockUserLogin', handleMockUserLogin)
     window.addEventListener('mockUserLogout', handleMockUserLogout)
 
+    // Set loading to false after a short delay to ensure no auto-login
+    const timer = setTimeout(() => {
+      if (!user) {
+        setLoading(false)
+      }
+    }, 100)
+
     return () => {
       unsubscribe()
+      clearTimeout(timer)
       window.removeEventListener('mockUserLogin', handleMockUserLogin)
       window.removeEventListener('mockUserLogout', handleMockUserLogout)
     }

@@ -24,14 +24,14 @@ import { BottomNavigation } from "./components/BottomNavigation"
 import { Toaster } from "sonner"
 import { FirebaseProvider, useFirebase } from "./contexts/FirebaseContext"
 import { signInWithGoogle, signOutUser } from "./firebase/auth"
-import { getUserProfile, createUserProfile } from "./firebase/users"
+import { getUserProfile, createUserProfile, deleteUserAccount } from "./firebase/users"
 import { toast } from "sonner"
 
 type ActiveScreen = 'board' | 'my-quests' | 'chats' | 'chat-detail' | 'profile' | 'create-quest' | 'profile-creation' | 'notifications' | 'settings' | 'chat-debug' | 'populate-data' | 'quest-feedback' | 'quest-approval' | 'faq' | 'contact-support' | 'report-bug' | 'privacy-policy' | 'terms-of-service'
 
 // Firebase-powered main app component
 function AppContent() {
-  const { user, quests } = useFirebase()
+  const { user, quests, isMockUser } = useFirebase()
   const [activeScreen, setActiveScreen] = useState<ActiveScreen>('board')
   const [questToEdit, setQuestToEdit] = useState<any>(null)
   const [activeChatId, setActiveChatId] = useState<string | null>(null)
@@ -56,14 +56,41 @@ function AppContent() {
     
     // Check profile completion when user logs in
     if (user) {
-      checkUserProfileCompletion().then(() => {
-        console.log('✅ Profile completion check finished')
+      checkUserProfileCompletion().then((isCompleted) => {
+        console.log('✅ Profile completion check finished:', isCompleted)
+        
+        // If profile is not completed, redirect to profile creation
+        if (!isCompleted) {
+          console.log('📱 Redirecting to profile creation for new/incomplete user')
+          setActiveScreen('profile-creation')
+        }
       })
     } else {
       setIsProfileCompleted(false)
       setUserProfile(null)
     }
   }, [user])
+
+  // Listen for Google login success events (for first-time users)
+  useEffect(() => {
+    const handleGoogleLoginSuccess = async (event: any) => {
+      const { userId, needsProfile } = event.detail || {}
+      
+      if (needsProfile && userId) {
+        console.log('📱 Google login success - redirecting to profile creation')
+        // Wait a moment for auth state to update
+        setTimeout(() => {
+          setActiveScreen('profile-creation')
+        }, 300)
+      }
+    }
+
+    window.addEventListener('googleLoginSuccess', handleGoogleLoginSuccess as EventListener)
+    
+    return () => {
+      window.removeEventListener('googleLoginSuccess', handleGoogleLoginSuccess as EventListener)
+    }
+  }, [])
 
   // Check if user has completed their profile
   const checkUserProfileCompletion = async () => {
@@ -101,6 +128,12 @@ function AppContent() {
       setQuestToEdit(null)
       setActiveChatId(null)
       return
+    }
+    
+    // For profile tab, refresh profile data when navigating
+    if (tab === 'profile' && user) {
+      // Trigger refresh by updating the refresh trigger
+      setBadgesRefreshTrigger(prev => prev + 1)
     }
     
     // For 'my-quests', 'chats', or 'profile', check if user is logged in
@@ -252,27 +285,69 @@ function AppContent() {
         return
       }
 
+      if (!user.uid) {
+        toast.error("Invalid user account. Please log in again.")
+        console.error('❌ User object missing uid:', user)
+        return
+      }
+
+      // Validate required profile data
+      if (!profileData.username || profileData.username.trim().length < 3) {
+        toast.error("Username must be at least 3 characters")
+        return
+      }
+
+      if (!profileData.age || parseInt(profileData.age) < 13 || parseInt(profileData.age) > 100) {
+        toast.error("Please enter a valid age (13-100)")
+        return
+      }
+
+      if (!profileData.city || !profileData.city.trim()) {
+        toast.error("City is required")
+        return
+      }
+
+      if (!profileData.personalityType) {
+        toast.error("Please select your personality type")
+        return
+      }
+
       // Save profile to Firebase
       const firebaseProfileData = {
-        username: profileData.username || 'Anonymous',
-        displayName: profileData.username || 'Anonymous User',
+        username: profileData.username.trim() || 'Anonymous',
+        displayName: profileData.username.trim() || 'Anonymous User',
         age: parseInt(profileData.age) || 18,
-        city: profileData.city || '',
+        city: profileData.city.trim() || '',
         gender: profileData.gender || '',
-        bio: profileData.bio || '',
-        personalityType: (profileData.personalityType as 'introvert' | 'extrovert' | 'ambivert') || 'introvert',
+        bio: profileData.bio?.trim() || '',
+        personalityType: (profileData.personalityType as 'introvert' | 'extrovert' | 'ambivert' | 'mysterious') || 'introvert',
         interests: profileData.interests || [],
         profileImage: profileData.profileImage || null,
         isProfileCompleted: true
       }
 
       console.log('🚀 Saving user profile to Firebase:', firebaseProfileData)
+      console.log('👤 User info:', { uid: user.uid, email: user.email, displayName: user.displayName })
+      
       const savedProfile = await createUserProfile(user, firebaseProfileData)
       console.log('✅ User profile saved successfully to Firebase:', savedProfile)
       
       setIsProfileCompleted(true)
       setIsLoggedIn(true) // User is now logged in after profile completion
       setExistingProfileData(null) // Clear existing profile data after save
+      
+      // Refresh profile data by updating the trigger
+      setBadgesRefreshTrigger(prev => prev + 1)
+      
+      // Also refresh the user profile in App state
+      if (user) {
+        try {
+          const updatedProfile = await getUserProfile(user.uid)
+          setUserProfile(updatedProfile)
+        } catch (error) {
+          console.error('Error refreshing profile after update:', error)
+        }
+      }
       
       toast.success("Profile completed successfully! 🎉", {
         description: "Welcome to TouchGrass!"
@@ -294,7 +369,24 @@ function AppContent() {
       }
     } catch (error: any) {
       console.error('❌ Error saving user profile:', error)
-      toast.error(`Failed to save profile: ${error.message}`)
+      console.error('❌ Error details:', {
+        message: error.message,
+        stack: error.stack,
+        user: user ? { uid: user.uid, email: user.email } : null,
+        profileData: profileData
+      })
+      
+      // Provide more specific error messages
+      let errorMessage = "Failed to save profile"
+      if (error.message?.includes('permission')) {
+        errorMessage = "Permission denied. Please check your Firebase security rules."
+      } else if (error.message?.includes('network') || error.message?.includes('fetch')) {
+        errorMessage = "Network error. Please check your internet connection."
+      } else if (error.message) {
+        errorMessage = `Failed to save profile: ${error.message}`
+      }
+      
+      toast.error(errorMessage)
       // Don't redirect if saving failed
     }
   }
@@ -309,47 +401,33 @@ function AppContent() {
     }
   }
 
-  const handleGoogleSignIn = async () => {
-    try {
-      console.log('🔄 Starting Google sign in process...')
-      const { user } = await signInWithGoogle()
-      console.log('✅ Google sign in successful, user:', user ? user.email : 'No user returned')
-      if (user) {
-        toast.success(`Welcome, ${user.displayName || 'User'}! 🎉`)
-        console.log('🚀 User authenticated. Checking profile completion...')
-        // Wait for profile completion check, then navigate accordingly
-        setTimeout(async () => {
-          const profile = await getUserProfile(user.uid)
-          if (!profile || !profile.isProfileCompleted) {
-            console.log('📱 Navigating to profile creation for new/incomplete user')
-            setActiveScreen('profile-creation')
-          } else {
-            console.log('📱 User profile already completed, staying on board')
-          }
-        }, 500)
-      } else {
-        console.error('❌ No user returned from signInWithGoogle')
-        toast.error('Login failed - no user returned')
-      }
-    } catch (error: any) {
-      console.error('❌ Google sign in error:', error)
-      // Don't show error if user cancelled the popup
-      if (error.code !== 'auth/cancelled-popup-request' && error.code !== 'auth/popup-closed-by-user') {
-        toast.error(error.message || 'Failed to sign in')
-      }
-    }
+  const handleGoogleSignIn = () => {
+    // Open the Google login modal instead of calling signInWithGoogle directly
+    // This prevents duplicate popups
+    console.log('🔄 Opening Google login modal...')
+    setIsGoogleLoginModalOpen(true)
+    // Set a handler that will be called after successful login
+    // The modal will handle the actual sign-in
   }
 
   const handleGoogleLoginForQuestCreation = async () => {
     try {
-      const { user } = await signInWithGoogle()
-      if (user) {
-        toast.success(`Welcome, ${user.displayName || 'User'}! 🎉`)
+      // Note: signInWithGoogle is now called directly in GoogleLoginModal
+      // This handler is called after successful login
+      const currentUser = user || (await new Promise((resolve) => {
+        // Wait a bit for auth state to update
+        setTimeout(() => {
+          const { getCurrentUser } = require('./firebase/auth')
+          resolve(getCurrentUser())
+        }, 300)
+      }))
+      
+      if (currentUser) {
         setIsGoogleLoginModalOpen(false)
         
         // Check if user needs profile completion before quest creation
         setTimeout(async () => {
-          const profile = await getUserProfile(user.uid)
+          const profile = await getUserProfile(currentUser.uid)
           if (!profile || !profile.isProfileCompleted) {
             console.log('📱 User needs profile completion for quest creation')
             setActiveScreen('profile-creation')
@@ -362,12 +440,8 @@ function AppContent() {
         setQuestToEdit(null) // Ensure fresh quest creation
       }
     } catch (error: any) {
-      console.error('Google login error:', error)
+      console.error('Error after Google login:', error)
       setIsGoogleLoginModalOpen(false)
-      // Don't show error if user cancelled the popup
-      if (error.code !== 'auth/cancelled-popup-request' && error.code !== 'auth/popup-closed-by-user') {
-        toast.error(error.message || 'Failed to sign in')
-      }
     }
   }
 
@@ -389,13 +463,14 @@ function AppContent() {
 
   const handleGoogleLoginForNavigation = async () => {
     try {
-      const { user } = await signInWithGoogle()
-      if (user) {
-        toast.success(`Welcome, ${user.displayName || 'User'}! 🎉`)
-        setIsGoogleLoginModalOpen(false)
-        
-        // Check if user needs profile completion before navigation
-        setTimeout(async () => {
+      // Note: signInWithGoogle is now called directly in GoogleLoginModal
+      // This handler is called after successful login, so user should be available from context
+      setIsGoogleLoginModalOpen(false)
+      
+      // Wait a moment for auth state to update
+      setTimeout(async () => {
+        if (user) {
+          // Check if user needs profile completion before navigation
           const profile = await getUserProfile(user.uid)
           if (!profile || !profile.isProfileCompleted) {
             console.log('📱 User needs profile completion before navigation')
@@ -408,15 +483,11 @@ function AppContent() {
               setPendingNavigationTab(null)
             }
           }
-        }, 500)
-      }
+        }
+      }, 500)
     } catch (error: any) {
-      console.error('Google login error:', error)
+      console.error('Error after Google login:', error)
       setIsGoogleLoginModalOpen(false)
-      // Don't show error if user cancelled the popup
-      if (error.code !== 'auth/cancelled-popup-request' && error.code !== 'auth/popup-closed-by-user') {
-        toast.error(error.message || 'Failed to sign in')
-      }
     }
   }
 
@@ -532,7 +603,12 @@ function AppContent() {
             userUid={undefined}
           />
         }
-        return <ProfileScreen isProfileCompleted={isProfileCompleted} onStartProfileCreation={() => setActiveScreen('profile-creation')} onEditProfile={() => setActiveScreen('profile-creation')} />
+        return <ProfileScreen 
+          isProfileCompleted={isProfileCompleted} 
+          onStartProfileCreation={() => setActiveScreen('profile-creation')} 
+          onEditProfile={() => setActiveScreen('profile-creation')}
+          refreshTrigger={badgesRefreshTrigger}
+        />
       case 'profile-creation':
         return <ProfileCreationScreen 
           onProfileComplete={handleProfileComplete} 
@@ -579,6 +655,7 @@ function AppContent() {
       case 'settings':
         return <SettingsScreen 
           onBack={() => setActiveScreen('board')}
+          refreshTrigger={badgesRefreshTrigger}
           onEditProfile={async () => {
             if (user) {
               try {
@@ -618,9 +695,81 @@ function AppContent() {
               toast.error(error.message || 'Failed to logout')
             }
           }}
-          onDeleteAccount={() => {
-            // TODO: Implement delete account functionality
-            toast.error('Delete account functionality not implemented yet')
+          onDeleteAccount={async () => {
+            if (!user) {
+              toast.error('No user found. Please log in again.')
+              return
+            }
+
+            try {
+              // Show loading toast
+              const loadingToast = toast.loading('Deleting account and all associated data...', {
+                description: isMockUser ? 'Removing mock user data...' : 'This may take a few moments'
+              })
+
+              // Delete the account
+              await deleteUserAccount(user.uid, isMockUser || false)
+              
+              // Dismiss loading toast
+              toast.dismiss(loadingToast)
+              
+              // Clear local state
+              setIsLoggedIn(false)
+              setIsProfileCompleted(false)
+              setUserProfile(null)
+              setExistingProfileData(null)
+              
+              // For mock users, ensure localStorage is cleared and logout event is dispatched
+              if (isMockUser) {
+                try {
+                  localStorage.removeItem('mockUser')
+                  window.dispatchEvent(new CustomEvent('mockUserLogout'))
+                  console.log('✅ Mock user cleared from localStorage')
+                } catch (localError) {
+                  console.error('⚠️ Error clearing mock user from localStorage:', localError)
+                }
+              } else {
+                // Sign out real Firebase users
+                try {
+                  await signOutUser()
+                } catch (signOutError) {
+                  // If sign out fails, that's okay - account is already deleted
+                  console.log('Sign out after deletion:', signOutError)
+                }
+              }
+              
+              toast.success('Account deleted successfully', {
+                description: isMockUser 
+                  ? 'Mock user account removed' 
+                  : 'All your data has been permanently removed'
+              })
+              
+              // Navigate to board
+              setActiveScreen('board')
+            } catch (error: any) {
+              console.error('❌ Error deleting account:', error)
+              
+              // For mock users, even if there's an error, try to clean up localStorage
+              if (isMockUser) {
+                try {
+                  localStorage.removeItem('mockUser')
+                  window.dispatchEvent(new CustomEvent('mockUserLogout'))
+                  setIsLoggedIn(false)
+                  setIsProfileCompleted(false)
+                  setUserProfile(null)
+                  setActiveScreen('board')
+                  
+                  toast.success('Mock user account removed', {
+                    description: 'Some cleanup steps may have failed, but account is removed'
+                  })
+                  return
+                } catch (localError) {
+                  console.error('❌ Failed to clean up mock user:', localError)
+                }
+              }
+              
+              toast.error(`Failed to delete account: ${error.message}`)
+            }
           }}
           onOpenFAQ={() => {
             console.log('📚 Opening FAQ screen')
