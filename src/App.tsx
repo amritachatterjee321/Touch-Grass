@@ -312,6 +312,23 @@ function AppContent() {
         return
       }
 
+      // Upload profile image to Firebase Storage if it's a base64 string
+      let profileImageUrl = profileData.profileImage || null
+      
+      if (profileImageUrl && profileImageUrl.startsWith('data:image')) {
+        try {
+          console.log('📤 Uploading profile image to Firebase Storage...')
+          const { uploadBase64ImageToStorage } = await import('./firebase/storage')
+          const imagePath = `profile-images/${user.uid}/${Date.now()}.jpg`
+          profileImageUrl = await uploadBase64ImageToStorage(profileImageUrl, imagePath)
+          console.log('✅ Profile image uploaded to Storage:', profileImageUrl)
+        } catch (uploadError: any) {
+          console.error('❌ Error uploading profile image:', uploadError)
+          toast.error('Failed to upload profile image. Profile will be saved without image.')
+          profileImageUrl = null
+        }
+      }
+
       // Save profile to Firebase
       const firebaseProfileData = {
         username: profileData.username.trim() || 'Anonymous',
@@ -322,15 +339,26 @@ function AppContent() {
         bio: profileData.bio?.trim() || '',
         personalityType: (profileData.personalityType as 'introvert' | 'extrovert' | 'ambivert' | 'mysterious') || 'introvert',
         interests: profileData.interests || [],
-        profileImage: profileData.profileImage || null,
+        profileImage: profileImageUrl, // Store URL instead of base64
         isProfileCompleted: true
       }
 
-      console.log('🚀 Saving user profile to Firebase:', firebaseProfileData)
+      console.log('🚀 Step 2: Updating user profile with complete details...')
       console.log('👤 User info:', { uid: user.uid, email: user.email, displayName: user.displayName })
+      console.log('📝 Profile data to save:', {
+        username: firebaseProfileData.username,
+        age: firebaseProfileData.age,
+        city: firebaseProfileData.city,
+        gender: firebaseProfileData.gender,
+        personalityType: firebaseProfileData.personalityType,
+        hasProfileImage: !!firebaseProfileData.profileImage
+      })
       
+      // This will UPDATE the existing document (created in Step 1) using merge: true
+      // The document ID is user.uid, so it updates the same document
       const savedProfile = await createUserProfile(user, firebaseProfileData)
-      console.log('✅ User profile saved successfully to Firebase:', savedProfile)
+      console.log('✅ Step 2 Complete: User profile updated successfully in Firebase')
+      console.log('📋 Same document updated (not recreated) - Document ID:', user.uid)
       
       setIsProfileCompleted(true)
       setIsLoggedIn(true) // User is now logged in after profile completion

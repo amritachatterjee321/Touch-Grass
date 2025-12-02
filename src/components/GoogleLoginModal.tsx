@@ -90,9 +90,15 @@ export function GoogleLoginModal({
             
             // Create a basic profile document in Firestore immediately after Google login
             // This ensures the account exists in Firestore even before profile completion
+            // The document will be UPDATED (not recreated) when user completes their profile
             try {
-              console.log('🔄 Creating basic user profile in Firestore...')
-              console.log('👤 User object:', { uid: user.uid, email: user.email, displayName: user.displayName })
+              console.log('🔄 Step 1: Creating initial user document in Firestore...')
+              console.log('👤 User object:', { 
+                uid: user.uid, 
+                email: user.email, 
+                displayName: user.displayName,
+                photoURL: user.photoURL 
+              })
               
               const createdProfile = await createUserProfile(user, {
                 email: user.email || '',
@@ -101,7 +107,9 @@ export function GoogleLoginModal({
                 isProfileCompleted: false
               })
               
-              console.log('✅ Basic user profile created in Firestore:', createdProfile)
+              console.log('✅ Step 1 Complete: Initial user document created in Firestore')
+              console.log('📋 Document will be UPDATED (not recreated) when user completes profile')
+              console.log('🔑 Document ID (user.uid):', user.uid)
             } catch (profileCreateError: any) {
               console.error('❌ CRITICAL: Error creating basic profile:', profileCreateError)
               console.error('❌ Error details:', {

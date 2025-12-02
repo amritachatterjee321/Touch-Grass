@@ -115,7 +115,11 @@ export const createUserProfile = async (
       bio: profileData?.bio || '',
       personalityType: profileData?.personalityType || 'introvert',
       interests: profileData?.interests || [],
-      profileImage: profileData?.profileImage || user.photoURL || null,
+      // Only store profileImage if it's a URL (not base64)
+      // Base64 images should be uploaded to Storage first
+      profileImage: profileData?.profileImage && !profileData.profileImage.startsWith('data:') 
+        ? profileData.profileImage 
+        : (user.photoURL || null),
       isProfileCompleted: profileData?.isProfileCompleted || false,
       questsCreated: profileData?.questsCreated || [],
       questsJoined: profileData?.questsJoined || [],
@@ -138,24 +142,44 @@ export const createUserProfile = async (
       }
     })
     
-    console.log('📝 Creating user profile in Firestore:', {
+    // Check if document already exists
+    const existingDoc = await getDoc(userRef)
+    const isNewDocument = !existingDoc.exists()
+    
+    console.log('📝 Creating/updating user profile in Firestore:', {
       uid: user.uid,
       email: user.email,
       providerId: providerId,
-      isProfileCompleted: userProfile.isProfileCompleted
+      isProfileCompleted: userProfile.isProfileCompleted,
+      isNewDocument: isNewDocument,
+      existingData: existingDoc.exists() ? {
+        username: existingDoc.data()?.username,
+        isProfileCompleted: existingDoc.data()?.isProfileCompleted
+      } : null
     })
     
+    // Use merge: true to update existing document or create new one
+    // This ensures we update the same document, not create a duplicate
     await setDoc(userRef, userProfile, { merge: true })
     
-    // Verify the document was created
-    const createdDoc = await getDoc(userRef)
-    if (!createdDoc.exists()) {
-      throw new Error('Failed to create user profile document - document does not exist after creation')
+    // Verify the document exists after write
+    const updatedDoc = await getDoc(userRef)
+    if (!updatedDoc.exists()) {
+      throw new Error('Failed to create/update user profile document - document does not exist after write')
     }
     
+    const docData = updatedDoc.data()
     console.log('✅ User profile created/updated successfully in Firestore')
-    console.log(`🔑 User ID: ${user.uid} | Provider: ${userProfile.providerId} | Provider UID: ${userProfile.providerUid}`)
-    console.log('📄 Document data:', createdDoc.data())
+    console.log(`🔑 User ID: ${user.uid} | Document ID: ${updatedDoc.id} | Provider: ${userProfile.providerId}`)
+    console.log('📄 Document data:', {
+      id: docData.id,
+      email: docData.email,
+      username: docData.username,
+      displayName: docData.displayName,
+      isProfileCompleted: docData.isProfileCompleted,
+      createdAt: docData.createdAt,
+      updatedAt: docData.updatedAt
+    })
     
     return userProfile
   } catch (error: any) {
