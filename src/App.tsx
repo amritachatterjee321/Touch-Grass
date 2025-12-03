@@ -312,20 +312,24 @@ function AppContent() {
         return
       }
 
-      // Upload profile image to Firebase Storage if it's a base64 string
-      let profileImageUrl = profileData.profileImage || null
+      // Use Google profile photo (no custom uploads until Storage is enabled)
+      let profileImageUrl = user.photoURL || null
       
-      if (profileImageUrl && profileImageUrl.startsWith('data:image')) {
-        try {
-          console.log('📤 Uploading profile image to Firebase Storage...')
-          const { uploadBase64ImageToStorage } = await import('./firebase/storage')
-          const imagePath = `profile-images/${user.uid}/${Date.now()}.jpg`
-          profileImageUrl = await uploadBase64ImageToStorage(profileImageUrl, imagePath)
-          console.log('✅ Profile image uploaded to Storage:', profileImageUrl)
-        } catch (uploadError: any) {
-          console.error('❌ Error uploading profile image:', uploadError)
-          toast.error('Failed to upload profile image. Profile will be saved without image.')
+      // Skip custom image uploads for now - just use Google photo
+      if (profileData.profileImage && profileData.profileImage.startsWith('data:image')) {
+        console.log('⚠️ Custom profile images disabled - using Google photo')
+        console.log('💡 To enable custom images: Enable Firebase Storage in Firebase Console')
+        
+        if (user.photoURL) {
+          profileImageUrl = user.photoURL
+          toast.info('Using your Google profile photo', {
+            description: 'Custom images will be available once Firebase Storage is enabled'
+          })
+        } else {
           profileImageUrl = null
+          toast.info('Profile will be created without a photo', {
+            description: 'Custom images will be available once Firebase Storage is enabled'
+          })
         }
       }
 

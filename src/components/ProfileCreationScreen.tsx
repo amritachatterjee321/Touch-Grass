@@ -94,15 +94,22 @@ export function ProfileCreationScreen({ onProfileComplete, onExit, existingProfi
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) {
-      if (file.size > 5 * 1024 * 1024) {
-        toast.error("Image size should be less than 5MB")
-        return
-      }
-      const reader = new FileReader()
-      reader.onload = (e) => {
-        setProfileImage(e.target?.result as string)
-      }
-      reader.readAsDataURL(file)
+      // Disabled until Firebase Storage is enabled
+      toast.info("Custom profile images disabled", {
+        description: "Using your Google profile photo. Enable Firebase Storage to upload custom images."
+      })
+      return
+      
+      // Original code (will work once Storage is enabled):
+      // if (file.size > 5 * 1024 * 1024) {
+      //   toast.error("Image size should be less than 5MB")
+      //   return
+      // }
+      // const reader = new FileReader()
+      // reader.onload = (e) => {
+      //   setProfileImage(e.target?.result as string)
+      // }
+      // reader.readAsDataURL(file)
     }
   }
 
