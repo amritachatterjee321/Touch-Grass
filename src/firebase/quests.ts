@@ -35,6 +35,7 @@ export interface Quest {
   difficulty: string
   organizerUid?: string
   organizerName?: string
+  organizer?: string // Display name for "Posted by" (same as organizerName)
   isEpic: boolean
   image?: string
   status?: 'draft' | 'published' | 'active' | 'completed' | 'cancelled'
@@ -42,6 +43,7 @@ export interface Quest {
   completedAt?: Timestamp
   createdAt?: Timestamp
   updatedAt?: Timestamp
+  city?: string
   joinRequests?: { [uid: string]: {
     name: string
     message: string

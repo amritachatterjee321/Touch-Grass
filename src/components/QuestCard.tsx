@@ -324,7 +324,9 @@ export function QuestCard({ quest, isProfileCompleted = true, onStartProfileCrea
         <div className="flex items-center justify-between">
           <div className="text-xs flex items-center gap-2 text-muted-foreground">
             <span className="text-neon-green">👤 POSTED BY:</span>
-            <span className="font-bold text-foreground">{quest.organizer}</span>
+            <span className="font-bold text-foreground">
+              {quest.organizer || (quest as any).organizerName || 'Anonymous'}
+            </span>
           </div>
           {quest.cost && (
             <div className={`inline-block ${

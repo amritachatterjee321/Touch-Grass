@@ -271,6 +271,7 @@ export function QuestCreationScreen({ questToEdit, onQuestSaved, onDiscard, onCl
           difficulty: 'Beginner',
           organizerUid: user.uid,
           organizerName: user.displayName || 'Anonymous',
+          organizer: user.displayName || 'Anonymous', // Add organizer field for QuestCard
           isEpic: true,
         }
         
