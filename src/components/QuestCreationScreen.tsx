@@ -235,7 +235,7 @@ export function QuestCreationScreen({ questToEdit, onQuestSaved, onDiscard, onCl
         // Update existing quest
         console.log('🔄 Updating quest in Firebase:', questToEdit.id, formData)
         
-        const questUpdateData = {
+        const questUpdateData: any = {
           title: formData.title,
           description: formData.description,
           category: formData.category,
@@ -244,7 +244,11 @@ export function QuestCreationScreen({ questToEdit, onQuestSaved, onDiscard, onCl
           date: formData.date,
           time: formData.time,
           cost: formData.cost || 'Free',
-          image: questImage || undefined,
+        }
+        
+        // Only add image field if it exists (Firestore doesn't accept undefined)
+        if (questImage) {
+          questUpdateData.image = questImage
         }
         
         await updateQuest(questToEdit.id, questUpdateData)
@@ -255,7 +259,7 @@ export function QuestCreationScreen({ questToEdit, onQuestSaved, onDiscard, onCl
         // Create new quest
         console.log('🚀 Creating new quest in Firebase:', formData)
         
-        const questCreateData = {
+        const questCreateData: any = {
           title: formData.title,
           description: formData.description,
           category: formData.category,
@@ -268,7 +272,11 @@ export function QuestCreationScreen({ questToEdit, onQuestSaved, onDiscard, onCl
           organizerUid: user.uid,
           organizerName: user.displayName || 'Anonymous',
           isEpic: true,
-          image: questImage || undefined
+        }
+        
+        // Only add image field if it exists (Firestore doesn't accept undefined)
+        if (questImage) {
+          questCreateData.image = questImage
         }
         
         const result = await createQuest(questCreateData)

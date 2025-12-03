@@ -79,13 +79,21 @@ export const createQuest = async (questData: Omit<Quest, 'id' | 'createdAt' | 'u
       return { id: existingDoc.id, ...existingDoc.data() }
     }
     
+    // Remove any undefined values before saving to Firestore
+    const cleanedQuestData: any = { ...questData }
+    Object.keys(cleanedQuestData).forEach(key => {
+      if (cleanedQuestData[key] === undefined) {
+        delete cleanedQuestData[key]
+      }
+    })
+    
     const docRef = await addDoc(questsRef, {
-      ...questData,
+      ...cleanedQuestData,
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp()
     })
     console.log('✅ Quest added to Firestore with ID:', docRef.id)
-    return { id: docRef.id, ...questData }
+    return { id: docRef.id, ...cleanedQuestData }
   } catch (error: any) {
     console.error('❌ Error adding quest to Firestore:', error)
     throw new Error(error.message || 'Failed to create quest')

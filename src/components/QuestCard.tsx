@@ -196,17 +196,6 @@ export function QuestCard({ quest, isProfileCompleted = true, onStartProfileCrea
 
   return (
     <div className={`hud-card relative overflow-hidden group mx-4 mb-4 ${quest.isEpic ? 'ring-2 ring-neon-cyan' : ''}`}>
-      {quest.isEpic && (
-        <div className="absolute -top-2 -right-2 px-3 py-1 text-xs font-bold transform rotate-12 z-10 rounded-md border border-neon-cyan" style={{
-          background: 'linear-gradient(135deg, var(--neon-cyan) 0%, var(--neon-purple) 100%)',
-          color: 'var(--background)',
-          textShadow: '0 0 10px rgba(0, 245, 255, 0.8)',
-          boxShadow: '0 0 20px rgba(0, 245, 255, 0.4)'
-        }}>
-          💝 FEATURED
-        </div>
-      )}
-      
       {/* Image Section - Only render if image exists */}
       {quest.image && (
         <div className="p-0 relative">
