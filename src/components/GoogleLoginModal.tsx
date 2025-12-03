@@ -58,12 +58,8 @@ export function GoogleLoginModal({
   questTitle 
 }: GoogleLoginModalProps) {
   const [isLoggingIn, setIsLoggingIn] = useState(false)
-  const [selectedMockUser, setSelectedMockUser] = useState<any>(mockUsers[1]) // Default to Sarah Lens
-  const [showMockUsers, setShowMockUsers] = useState(true) // Show mock users by default
-
-  // Debug log to check initial state
-  console.log('🔍 Initial selectedMockUser:', selectedMockUser)
-  console.log('🔍 Mock users available:', mockUsers)
+  const [selectedMockUser, setSelectedMockUser] = useState<any>(null) // No default selection
+  const [showMockUsers, setShowMockUsers] = useState(false) // Hide mock users by default
 
   const handleGoogleLogin = async () => {
     if (isLoggingIn) return // Prevent multiple clicks
