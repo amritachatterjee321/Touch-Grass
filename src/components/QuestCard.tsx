@@ -16,9 +16,7 @@ interface QuestCardProps {
     date: string
     time: string
     cost: string
-    difficulty: 'Beginner' | 'Intermediate' | 'Expert'
     organizer: string
-    isEpic?: boolean
     image?: string
   }
   isProfileCompleted?: boolean
@@ -195,7 +193,7 @@ export function QuestCard({ quest, isProfileCompleted = true, onStartProfileCrea
   const categoryStyle = getCategoryStyle(quest.category)
 
   return (
-    <div className={`hud-card relative overflow-hidden group mx-4 mb-4 ${quest.isEpic ? 'ring-2 ring-neon-cyan' : ''}`}>
+    <div className="hud-card relative overflow-hidden group mx-4 mb-4">
       {/* Image Section - Only render if image exists */}
       {quest.image && (
         <div className="p-0 relative">
@@ -325,7 +323,7 @@ export function QuestCard({ quest, isProfileCompleted = true, onStartProfileCrea
           <div className="text-xs flex items-center gap-2 text-muted-foreground">
             <span className="text-neon-green">👤 POSTED BY:</span>
             <span className="font-bold text-foreground">
-              {quest.organizer || (quest as any).organizerName || 'Anonymous'}
+              {quest.organizer || 'Anonymous'}
             </span>
           </div>
           {quest.cost && (

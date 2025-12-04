@@ -170,11 +170,35 @@ export function QuestBoard({
 
   const filteredQuests = allQuests.filter(quest => {
     const matchesCategory = selectedCategory === 'All' || quest.category === selectedCategory
-    return matchesCategory
+    
+    // Filter by city - extract city name from "City, State" format
+    // selectedLocation is in format: "Bangalore, Karnataka"
+    // quest.city might be just "Bangalore" or "Bangalore, Karnataka"
+    const selectedCityName = selectedLocation.split(',')[0].trim()
+    const questCityName = quest.city ? quest.city.split(',')[0].trim() : null
+    
+    // Match if:
+    // 1. Quest has no city (legacy quests)
+    // 2. Quest city matches selected city
+    const matchesCity = !questCityName || questCityName === selectedCityName
+    
+    // Debug logging for filtered out quests
+    if (!matchesCategory || !matchesCity) {
+      console.log('🔍 Quest filtered out:', {
+        title: quest.title,
+        questCity: questCityName,
+        selectedCity: selectedCityName,
+        matchesCity: matchesCity,
+        questCategory: quest.category,
+        selectedCategory: selectedCategory,
+        matchesCategory: matchesCategory
+      })
+    }
+    
+    return matchesCategory && matchesCity
   })
-
-  const epicQuests = filteredQuests.filter(q => q.isEpic)
-  const regularQuests = filteredQuests.filter(q => !q.isEpic)
+  
+  console.log('📊 QuestBoard: Total quests:', allQuests.length, 'Filtered quests:', filteredQuests.length)
 
   return (
     <div className="min-h-screen bg-background">
@@ -269,30 +293,10 @@ export function QuestBoard({
 
       <div className="pt-2 space-y-4">
 
-
-        {/* Epic Adventures Section */}
-        {epicQuests.length > 0 && (
+        {/* All Quests */}
+        {filteredQuests.length > 0 && (
           <div className="space-y-0">
-            {epicQuests.map(quest => (
-              <QuestCard 
-                key={quest.id} 
-                quest={quest} 
-                isProfileCompleted={isProfileCompleted}
-                onStartProfileCreation={onStartProfileCreation}
-                isLoggedIn={isLoggedIn}
-                onGoogleSignIn={onGoogleSignIn}
-                userUid={userUid}
-                savedQuests={savedQuests}
-                onQuestSaveToggle={onQuestSaveToggle}
-              />
-            ))}
-          </div>
-        )}
-
-        {/* Regular Adventures Section */}
-        {regularQuests.length > 0 && (
-          <div className="space-y-0">
-            {regularQuests.map(quest => (
+            {filteredQuests.map(quest => (
               <QuestCard 
                 key={quest.id} 
                 quest={quest} 

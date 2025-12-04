@@ -4,8 +4,9 @@ import { MapPin, Clock, DollarSign, Sparkles, Zap, Trash2, ArrowLeft, Camera, X,
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select"
 import { toast } from "sonner"
 import { deleteQuest, createQuest, updateQuest } from "../firebase/quests"
+import { getUserProfile } from "../firebase/users"
 
-const categories = ['Social', 'Adventure', 'Learning', 'Creative']
+const categories = ['Social', 'Adventure', 'Learning', 'Creative', 'Sports', 'Food', 'Music', 'Art', 'Tech', 'Travel', 'Fitness']
 
 const cities = [
   'Mumbai', 'Delhi', 'Bangalore', 'Chennai', 'Hyderabad', 
@@ -259,6 +260,21 @@ export function QuestCreationScreen({ questToEdit, onQuestSaved, onDiscard, onCl
         // Create new quest
         console.log('🚀 Creating new quest in Firebase:', formData)
         
+        // Fetch user profile to get username
+        let organizerName = user.displayName || 'Anonymous'
+        try {
+          const profile = await getUserProfile(user.uid)
+          if (profile && profile.username) {
+            organizerName = profile.username
+            console.log('✅ Using username from profile:', organizerName)
+          } else {
+            console.log('⚠️ No profile username found, using displayName:', organizerName)
+          }
+        } catch (error) {
+          console.error('⚠️ Error fetching profile for organizer name:', error)
+          // Continue with displayName as fallback
+        }
+        
         const questCreateData: any = {
           title: formData.title,
           description: formData.description,
@@ -268,11 +284,8 @@ export function QuestCreationScreen({ questToEdit, onQuestSaved, onDiscard, onCl
           date: formData.date,
           time: formData.time,
           cost: formData.cost || 'Free',
-          difficulty: 'Beginner',
           organizerUid: user.uid,
-          organizerName: user.displayName || 'Anonymous',
-          organizer: user.displayName || 'Anonymous', // Add organizer field for QuestCard
-          isEpic: true,
+          organizer: organizerName,
         }
         
         // Only add image field if it exists (Firestore doesn't accept undefined)
@@ -442,6 +455,13 @@ export function QuestCreationScreen({ questToEdit, onQuestSaved, onDiscard, onCl
                         {category === 'Adventure' && '🗺️'}
                         {category === 'Learning' && '📚'}
                         {category === 'Creative' && '🎨'}
+                        {category === 'Sports' && '⚽'}
+                        {category === 'Food' && '🍕'}
+                        {category === 'Music' && '🎵'}
+                        {category === 'Art' && '🎭'}
+                        {category === 'Tech' && '💻'}
+                        {category === 'Travel' && '✈️'}
+                        {category === 'Fitness' && '💪'}
                       </span>
                       {category}
                     </SelectItem>

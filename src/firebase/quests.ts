@@ -32,11 +32,8 @@ export interface Quest {
   date: string
   time: string
   cost: string
-  difficulty: string
   organizerUid?: string
-  organizerName?: string
-  organizer?: string // Display name for "Posted by" (same as organizerName)
-  isEpic: boolean
+  organizer?: string // Display name for "Posted by"
   image?: string
   status?: 'draft' | 'published' | 'active' | 'completed' | 'cancelled'
   participants?: string[]
@@ -372,7 +369,6 @@ const mockQuests = [
     time: '18:00',
     cost: '₹15',
     difficulty: 'Easy',
-    isEpic: true,
     image: 'https://images.unsplash.com/photo-1606092195730-5d7b9af1efc5?w=500'
   },
   {
@@ -385,7 +381,6 @@ const mockQuests = [
     time: '09:00',
     cost: 'Free',
     difficulty: 'Easy',
-    isEpic: false,
     image: 'https://images.unsplash.com/photo-1502920917128-1aa500764cbd?w=500'
   },
   {
@@ -398,7 +393,6 @@ const mockQuests = [
     time: '10:00',
     cost: '₹25',
     difficulty: 'Medium',
-    isEpic: true,
     image: 'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=500'
   },
   {
@@ -411,7 +405,6 @@ const mockQuests = [
     time: '08:00',
     cost: '₹10',
     difficulty: 'Hard',
-    isEpic: false,
     image: 'https://images.unsplash.com/photo-1551632811-561732d1e306?w=500'
   },
   {
@@ -424,7 +417,6 @@ const mockQuests = [
     time: '14:00',
     cost: '₹35',
     difficulty: 'Medium',
-    isEpic: false,
     image: 'https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=500'
   }
 ]
@@ -441,7 +433,7 @@ export const populateQuestDataForUser = async (userId: string, userName: string)
       const questDoc = {
         ...questData,
         organizerUid: userId,
-        organizerName: userName,
+        organizer: userName,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp()
       }
@@ -483,10 +475,9 @@ export const populateUserQuestData = async (userId: string) => {
         time: '09:00',
         cost: 'Free',
         difficulty: 'Medium',
-        isEpic: false,
         image: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=500',
         organizerUid: 'other_user_001',
-        organizerName: 'Sarah Johnson',
+        organizer: 'Sarah Johnson',
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp()
       },
@@ -500,10 +491,9 @@ export const populateUserQuestData = async (userId: string) => {
         time: '19:00',
         cost: '₹45',
         difficulty: 'Medium',
-        isEpic: true,
         image: 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=500',
         organizerUid: 'other_user_002',
-        organizerName: 'Marco Rossi',
+        organizer: 'Marco Rossi',
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp()
       },
@@ -517,10 +507,9 @@ export const populateUserQuestData = async (userId: string) => {
         time: '08:00',
         cost: '₹10',
         difficulty: 'Easy',
-        isEpic: false,
         image: 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=500',
         organizerUid: 'other_user_003',
-        organizerName: 'Emma Chen',
+        organizer: 'Emma Chen',
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp()
       }

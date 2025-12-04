@@ -16,9 +16,7 @@ interface QuestDetailsModalProps {
     date: string
     time: string
     cost: string
-    difficulty: 'Beginner' | 'Intermediate' | 'Expert'
     organizer: string
-    isEpic?: boolean
     image?: string
     equipment?: string
     tags?: string[]
@@ -28,11 +26,6 @@ interface QuestDetailsModalProps {
 }
 
 export function QuestDetailsModal({ quest, onClose, onJoin }: QuestDetailsModalProps) {
-  const difficultyColors = {
-    'Beginner': 'bg-green-500',
-    'Intermediate': 'bg-yellow-500', 
-    'Expert': 'bg-red-500'
-  }
 
   // Category color mapping - matches QuestBoard's comprehensive palette
   const getCategoryStyle = (category: string) => {
@@ -140,20 +133,11 @@ export function QuestDetailsModal({ quest, onClose, onJoin }: QuestDetailsModalP
                 ×
               </button>
 
-              {/* Epic Badge */}
-              {quest.isEpic && (
-                <div className="absolute top-4 left-4 bg-yellow-400 text-black px-3 py-1 font-bold transform -rotate-12">
-                  EPIC QUEST!
-                </div>
-              )}
 
               {/* Quest Info Overlay */}
               <div className="absolute bottom-4 left-4 right-4">
                 <h1 className="text-2xl font-bold text-white mb-2">{quest.title}</h1>
                 <div className="flex gap-2">
-                  <Badge className={`${difficultyColors[quest.difficulty]} text-white border-0`}>
-                    {quest.difficulty}
-                  </Badge>
                   <div 
                     className="px-3 py-1 text-xs font-bold uppercase tracking-wider rounded-full border backdrop-blur-sm"
                     style={{
@@ -176,9 +160,6 @@ export function QuestDetailsModal({ quest, onClose, onJoin }: QuestDetailsModalP
                 <div>
                   <h1 className="text-2xl font-bold text-foreground mb-2">{quest.title}</h1>
                   <div className="flex gap-2">
-                    <Badge className={`${difficultyColors[quest.difficulty]}`}>
-                      {quest.difficulty}
-                    </Badge>
                     <div 
                       className="px-3 py-1 text-xs font-bold uppercase tracking-wider rounded-full border backdrop-blur-sm"
                       style={{
@@ -202,13 +183,6 @@ export function QuestDetailsModal({ quest, onClose, onJoin }: QuestDetailsModalP
                   ×
                 </button>
               </div>
-              
-              {/* Epic Badge */}
-              {quest.isEpic && (
-                <div className="inline-block bg-yellow-400 text-black px-3 py-1 font-bold transform -rotate-12 mb-4">
-                  EPIC QUEST!
-                </div>
-              )}
             </div>
           )}
         </CardHeader>

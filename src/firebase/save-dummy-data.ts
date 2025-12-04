@@ -33,7 +33,6 @@ export interface DummyQuest {
   difficulty: 'Beginner' | 'Intermediate' | 'Expert'
   organizer: string
   image: string
-  isEpic?: boolean
   participants?: number
   maxParticipants?: number
   createdAt?: Timestamp
@@ -130,7 +129,6 @@ const dummyQuests: DummyQuest[] = [
     cost: 'Free',
     difficulty: 'Beginner',
     organizer: 'alex_newbie',
-    isEpic: true,
     participants: 5,
     maxParticipants: 8,
     image: 'https://images.unsplash.com/photo-1607748732922-4dabb64163d0?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxmcmllbmRzJTIwaGFuZ2luZyUyMG91dCUyMHRvZ2V0aGVyfGVufDF8fHx8MTc1NjQ2ODQwMnww&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral'

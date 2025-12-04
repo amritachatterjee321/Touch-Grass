@@ -3,7 +3,7 @@ import { Calendar, MapPin, Settings, MessageSquare } from "lucide-react"
 import { toast } from "sonner"
 import { getOrCreateQuestChat, getUserChats } from "../firebase/chats"
 import { useFirebase } from "../contexts/FirebaseContext"
-import { getQuestById, unsaveQuest } from "../firebase/quests"
+import { getQuestById, unsaveQuest, getUserQuests } from "../firebase/quests"
 import { getUserProfile } from "../firebase/users"
 import { getQuestBadges, getBadgesGivenByUser } from "../firebase/badges"
 import { JoinQuestModal } from "./JoinQuestModal"
@@ -300,12 +300,38 @@ export function MyQuests({ onEditQuest, onNavigateToChats, onOpenChat, onViewJoi
   const [isJoinModalOpen, setIsJoinModalOpen] = useState(false)
   const [selectedQuest, setSelectedQuest] = useState<any>(null)
   const [joinedQuests, setJoinedQuests] = useState(mockJoinedQuests)
-  const [organizedQuests] = useState(initialMockOrganizedQuests)
+  const [organizedQuests, setOrganizedQuests] = useState<any[]>([])
+  const [isLoadingOrganizedQuests, setIsLoadingOrganizedQuests] = useState(false)
   const [joinRequests] = useState(mockJoinRequests)
   const [loadedSavedQuests, setLoadedSavedQuests] = useState<any[]>([])
   const [isLoadingSavedQuests, setIsLoadingSavedQuests] = useState(false)
   const [firebaseChats, setFirebaseChats] = useState<any[]>([])
   const [questBadgeStats, setQuestBadgeStats] = useState<{[questId: string]: {badgesGiven: number, totalParticipants: number, hasUserGivenBadges: boolean}}>({})
+
+  // Load organized quests from Firebase
+  useEffect(() => {
+    const loadOrganizedQuests = async () => {
+      if (!user) {
+        setOrganizedQuests([])
+        return
+      }
+
+      setIsLoadingOrganizedQuests(true)
+      try {
+        console.log('🔄 MyQuests: Fetching organized quests for user:', user.uid)
+        const quests = await getUserQuests(user.uid)
+        console.log('📋 MyQuests: Found', quests.length, 'organized quests')
+        setOrganizedQuests(quests)
+      } catch (error) {
+        console.error('❌ MyQuests: Error loading organized quests:', error)
+        setOrganizedQuests([])
+      } finally {
+        setIsLoadingOrganizedQuests(false)
+      }
+    }
+
+    loadOrganizedQuests()
+  }, [user, badgesRefreshTrigger]) // Re-fetch when user changes or when triggered
 
   // Load saved quests from Firebase
   useEffect(() => {

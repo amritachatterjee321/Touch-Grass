@@ -46,12 +46,11 @@ export interface EnhancedQuest {
   
   // Status & Publication
   isPublished: boolean
-  isEpic: boolean
   status: 'draft' | 'published' | 'completed' | 'cancelled'
   
   // Organizer Info
   organizerUid: string
-  organizerName: string
+  organizer: string
   organizerPhotoURL?: string
   
   // Participants & Requests
@@ -135,7 +134,6 @@ export const getEpicQuests = async (city?: string) => {
   try {
     let questQuery = query(
       collection(db, 'quests'),
-      where('isEpic', '==', true),
       where('status', '==', 'published'),
       where('isPublished', '==', true),
       orderBy('publishedAt', 'desc')

@@ -199,6 +199,8 @@ function AppContent() {
     // Handle deletion case (null data)
     if (questData === null) {
       console.log('🗑️ Quest deleted by user')
+      // Refresh my-quests to remove deleted quest
+      setBadgesRefreshTrigger(prev => prev + 1)
       // Navigate to appropriate screen after deletion
       setActiveScreen('my-quests')
       setQuestToEdit(null)
@@ -206,6 +208,9 @@ function AppContent() {
     }
 
     console.log('✅ Quest operation completed:', questData)
+    
+    // Trigger refresh of MyQuests to show new/updated quest
+    setBadgesRefreshTrigger(prev => prev + 1)
     
     // Navigate to appropriate screen after success
     if (questToEdit) {
