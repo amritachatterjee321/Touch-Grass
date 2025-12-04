@@ -40,9 +40,9 @@ export function GameHeader({ onOpenNotifications, onOpenSettings }: GameHeaderPr
             className="hud-card p-2.5 active:border-neon-cyan group transition-all duration-300 relative touch-manipulation min-w-[35px] min-h-[35px] flex items-center justify-center"
           >
             <Bell className="w-4 h-4 text-muted-foreground group-active:text-neon-cyan transition-colors duration-300" />
-            {/* Notification badge */}
-            <div className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-gradient-to-r from-neon-pink to-neon-orange rounded-full flex items-center justify-center border border-white">
-              <span className="text-[10px] text-white font-bold">3</span>
+            {/* Notification indicator dot - shown when user has unread notifications */}
+            <div className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full border border-white shadow-lg">
+              <div className="absolute inset-0 bg-red-500 rounded-full animate-ping opacity-75"></div>
             </div>
           </button>
           
