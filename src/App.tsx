@@ -155,6 +155,14 @@ function AppContent() {
   }
 
   const handleOpenSettings = () => {
+    // If user is not logged in, open login modal instead of settings
+    if (!user) {
+      setPendingNavigationTab('profile') // Set profile as pending navigation
+      setIsGoogleLoginModalOpen(true)
+      return
+    }
+    
+    // User is logged in, open settings
     setActiveScreen('settings')
   }
 
