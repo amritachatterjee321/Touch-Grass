@@ -18,7 +18,7 @@ export function TermsOfServiceScreen({ onBack }: TermsOfServiceScreenProps) {
           </button>
           <div>
             <h1 className="text-lg font-bold text-foreground">TERMS OF SERVICE</h1>
-            <p className="text-sm text-muted-foreground">Your agreement to use TouchGrass</p>
+            <p className="text-sm text-muted-foreground">Your agreement to use TagAlong</p>
           </div>
         </div>
       </div>
@@ -39,7 +39,7 @@ export function TermsOfServiceScreen({ onBack }: TermsOfServiceScreenProps) {
           </h2>
           <div className="hud-card p-4">
             <p className="text-sm text-muted-foreground leading-relaxed">
-              By accessing and using TouchGrass ("the App"), you accept and agree to be bound by these 
+              By accessing and using TagAlong ("the App"), you accept and agree to be bound by these 
               Terms of Service ("Terms"). If you do not agree to these Terms, please do not use our service. 
               These Terms apply to all users, including quest creators and participants.
             </p>
@@ -51,7 +51,7 @@ export function TermsOfServiceScreen({ onBack }: TermsOfServiceScreenProps) {
           <h2 className="text-lg font-bold text-foreground">SERVICE DESCRIPTION</h2>
           <div className="hud-card p-4">
             <p className="text-sm text-muted-foreground leading-relaxed mb-3">
-              TouchGrass is a social platform that connects people for real-world activities and adventures. 
+              TagAlong is a social platform that connects people for real-world activities and adventures. 
               Our service allows users to:
             </p>
             <ul className="text-sm text-muted-foreground space-y-1 ml-4">
@@ -74,7 +74,7 @@ export function TermsOfServiceScreen({ onBack }: TermsOfServiceScreenProps) {
             <div className="hud-card p-4">
               <h3 className="font-medium text-foreground mb-2">Account Requirements</h3>
               <ul className="text-sm text-muted-foreground space-y-1 ml-4">
-                <li>• You must be at least 18 years old to use TouchGrass</li>
+                <li>• You must be at least 18 years old to use TagAlong</li>
                 <li>• Provide accurate and truthful profile information</li>
                 <li>• Keep your account credentials secure</li>
                 <li>• You are responsible for all activity on your account</li>
@@ -125,7 +125,7 @@ export function TermsOfServiceScreen({ onBack }: TermsOfServiceScreenProps) {
               <li>• Always meet new people in public places</li>
               <li>• Tell someone where you're going and when you'll return</li>
               <li>• Trust your instincts - leave if you feel uncomfortable</li>
-              <li>• TouchGrass does not conduct background checks on users</li>
+              <li>• TagAlong does not conduct background checks on users</li>
               <li>• We are not responsible for interactions outside the app</li>
             </ul>
           </div>
@@ -137,7 +137,7 @@ export function TermsOfServiceScreen({ onBack }: TermsOfServiceScreenProps) {
           
           <div className="hud-card p-4">
             <ul className="text-sm text-muted-foreground space-y-2">
-              <li>• TouchGrass does not process payments between users</li>
+              <li>• TagAlong does not process payments between users</li>
               <li>• Quest costs are arranged directly between participants</li>
               <li>• Users are responsible for their own expenses and arrangements</li>
               <li>• We may introduce premium features with separate terms</li>
@@ -151,7 +151,7 @@ export function TermsOfServiceScreen({ onBack }: TermsOfServiceScreenProps) {
           
           <div className="hud-card p-4">
             <p className="text-sm text-muted-foreground leading-relaxed mb-3">
-              TouchGrass and its content are protected by intellectual property laws. By using our service:
+              TagAlong and its content are protected by intellectual property laws. By using our service:
             </p>
             <ul className="text-sm text-muted-foreground space-y-1 ml-4">
               <li>• You grant us rights to use content you post on the platform</li>
@@ -169,7 +169,7 @@ export function TermsOfServiceScreen({ onBack }: TermsOfServiceScreenProps) {
           <div className="hud-card p-4">
             <p className="text-sm text-muted-foreground leading-relaxed">
               Your privacy is important to us. Our Privacy Policy explains how we collect, use, and 
-              protect your information. By using TouchGrass, you also agree to our Privacy Policy.
+              protect your information. By using TagAlong, you also agree to our Privacy Policy.
             </p>
           </div>
         </section>
@@ -197,7 +197,7 @@ export function TermsOfServiceScreen({ onBack }: TermsOfServiceScreenProps) {
           
           <div className="hud-card p-4">
             <p className="text-sm text-muted-foreground leading-relaxed mb-3">
-              TouchGrass is provided "as is" without warranties. We are not liable for:
+              TagAlong is provided "as is" without warranties. We are not liable for:
             </p>
             <ul className="text-sm text-muted-foreground space-y-1 ml-4">
               <li>• Actions or conduct of other users</li>
@@ -227,7 +227,7 @@ export function TermsOfServiceScreen({ onBack }: TermsOfServiceScreenProps) {
           <div className="hud-card p-4">
             <p className="text-sm text-muted-foreground leading-relaxed">
               Questions about these Terms? Contact us through the Contact Support option in app settings 
-              or email legal@touchgrass.app.
+              or email legal@tagalong.app.
             </p>
           </div>
         </section>

@@ -39,9 +39,9 @@ export function PrivacyPolicyScreen({ onBack }: PrivacyPolicyScreenProps) {
           </h2>
           <div className="hud-card p-4">
             <p className="text-sm text-muted-foreground leading-relaxed">
-              TouchGrass ("we," "our," or "us") is committed to protecting your privacy. This Privacy Policy 
+              TagAlong ("we," "our," or "us") is committed to protecting your privacy. This Privacy Policy 
               explains how we collect, use, disclose, and safeguard your information when you use our mobile 
-              application and services. By using TouchGrass, you agree to the collection and use of information 
+              application and services. By using TagAlong, you agree to the collection and use of information 
               in accordance with this policy.
             </p>
           </div>
@@ -178,7 +178,7 @@ export function PrivacyPolicyScreen({ onBack }: PrivacyPolicyScreenProps) {
             <p className="text-sm text-muted-foreground leading-relaxed">
               If you have questions about this Privacy Policy or how we handle your data, please contact 
               our Privacy Team through the Contact Support option in the app settings, or email us at 
-              privacy@touchgrass.app.
+              privacy@tagalong.app.
             </p>
           </div>
         </section>
@@ -191,7 +191,7 @@ export function PrivacyPolicyScreen({ onBack }: PrivacyPolicyScreenProps) {
             <p className="text-sm text-muted-foreground leading-relaxed">
               We may update this Privacy Policy from time to time. We will notify you of any material 
               changes by posting the new policy in the app and updating the "Last Updated" date. 
-              Your continued use of TouchGrass after changes constitutes acceptance of the updated policy.
+              Your continued use of TagAlong after changes constitutes acceptance of the updated policy.
             </p>
           </div>
         </section>

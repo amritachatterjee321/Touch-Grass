@@ -15,8 +15,8 @@ interface FAQItem {
 const faqData: FAQItem[] = [
   {
     id: "1",
-    question: "What is TouchGrass?",
-    answer: "TouchGrass is a social messaging app that gamifies event planning. Users can post 'adventures' (events) they're hosting or seeking companions for, while others can apply to join these quests. We use gaming terminology like 'JOIN QUEST' and 'SQUAD' to make planning social activities more engaging.",
+    question: "What is TagAlong?",
+    answer: "TagAlong is a social messaging app that gamifies event planning. Users can post 'adventures' (events) they're hosting or seeking companions for, while others can apply to join these quests. We use gaming terminology like 'JOIN QUEST' and 'SQUAD' to make planning social activities more engaging.",
     category: "General"
   },
   {
@@ -58,7 +58,7 @@ const faqData: FAQItem[] = [
   {
     id: "8",
     question: "How does payment work?",
-    answer: "TouchGrass doesn't handle payments directly. Quest creators can specify costs in Indian Rupees (₹), and payment arrangements are made directly between participants. We recommend discussing payment details in the quest chat before meeting up.",
+    answer: "TagAlong doesn't handle payments directly. Quest creators can specify costs in Indian Rupees (₹), and payment arrangements are made directly between participants. We recommend discussing payment details in the quest chat before meeting up.",
     category: "Payment"
   },
   {

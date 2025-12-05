@@ -37,7 +37,7 @@ export function ReportBugScreen({ onBack }: ReportBugScreenProps) {
     try {
       await new Promise(resolve => setTimeout(resolve, 1500))
       
-      toast.success("Bug report submitted successfully! Thank you for helping us improve TouchGrass.")
+      toast.success("Bug report submitted successfully! Thank you for helping us improve TagAlong.")
       
       // Reset form
       setTitle('')

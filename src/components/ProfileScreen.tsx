@@ -3,6 +3,7 @@ import { Trophy, Sparkles, Target, Star, Crown } from "lucide-react"
 import { useFirebase } from "../contexts/FirebaseContext"
 import { getUserProfile } from "../firebase/users"
 import { getUserQuests, getUserJoinedQuests } from "../firebase/quests"
+import { getUserBadgeStats } from "../firebase/badges"
 
 const heroLevels = [
   { 
@@ -53,21 +54,6 @@ const getProgressToNextLevel = (adventuresCompleted: number, currentLevel: any) 
   return Math.min(100, (progressInCurrentLevel / totalNeededForCurrentLevel) * 100)
 }
 
-// Mock profile for reference - will be replaced with real data
-const mockProfile = {
-  username: 'HeroAlex',
-  bio: 'Seasoned grass-toucher and adventure seeker! Spreading the joy of real-world connections one quest at a time.',
-  avatar: 'https://images.unsplash.com/photo-1633868060075-d77201a3bbab?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxyZXRybyUyMGdhbWluZyUyMDgtYml0fGVufDF8fHx8MTc1NjU0NjIwMXww&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral',
-  stats: {
-    adventuresCompleted: 0,
-    adventuresOrganized: 0,
-  },
-  recentActivity: [
-    'Start your adventure journey!',
-    'Join or create your first quest',
-    'Connect with fellow adventurers'
-  ]
-}
 
 
 
@@ -84,6 +70,8 @@ export function ProfileScreen({ isProfileCompleted = true, onStartProfileCreatio
   const [questsJoined, setQuestsJoined] = useState(0)
   const [questsOrganized, setQuestsOrganized] = useState(0)
   const [isLoading, setIsLoading] = useState(true)
+  const [badgeStats, setBadgeStats] = useState<any>(null)
+  const [recentActivity, setRecentActivity] = useState<string[]>([])
 
   // Fetch user profile and quest data
   useEffect(() => {
@@ -119,11 +107,53 @@ export function ProfileScreen({ isProfileCompleted = true, onStartProfileCreatio
         const joinedQuests = await getUserJoinedQuests(user.uid)
         setQuestsJoined(joinedQuests.length)
 
+        // Fetch badge statistics
+        let badgeData: any = null
+        try {
+          badgeData = await getUserBadgeStats(user.uid)
+          setBadgeStats(badgeData)
+          console.log('🏆 Badge stats fetched:', badgeData)
+        } catch (error) {
+          console.error('❌ Error fetching badge stats:', error)
+          badgeData = {
+            badgesReceived: 0,
+            badgesReceivedByType: {}
+          }
+          setBadgeStats(badgeData)
+        }
+
+        // Build recent activity from real data
+        const activities: string[] = []
+        
+        // Add recent quests created (most recent first, limit to 3)
+        const recentCreatedQuests = organizedQuests.slice(0, 3)
+        recentCreatedQuests.forEach((quest) => {
+          activities.push(`Created quest: "${quest.title}"`)
+        })
+        
+        // Add recent quests joined (most recent first, limit to 3)
+        const recentJoinedQuests = joinedQuests.slice(0, 3)
+        recentJoinedQuests.forEach((quest) => {
+          if (activities.length < 5) { // Limit total activities to 5
+            activities.push(`Joined quest: "${quest.title}"`)
+          }
+        })
+        
+        // If no activities, show default message
+        if (activities.length === 0) {
+          activities.push('Start your adventure journey!')
+          activities.push('Join or create your first quest')
+          activities.push('Connect with fellow adventurers')
+        }
+        
+        setRecentActivity(activities)
+
         console.log('📊 Profile Stats:', {
           questsJoined: joinedQuests.length,
           questsOrganized: organizedQuests.length,
           level: profile?.level || 1,
-          username: profile?.username || profile?.displayName || 'Unknown'
+          username: profile?.username || profile?.displayName || 'Unknown',
+          badgesReceived: badgeData?.badgesReceived || 0
         })
       } catch (error) {
         console.error('❌ Error fetching user data:', error)
@@ -139,12 +169,12 @@ export function ProfileScreen({ isProfileCompleted = true, onStartProfileCreatio
   const profileData = {
     username: userProfile?.username || userProfile?.displayName || 'Hero',
     bio: userProfile?.bio || 'Welcome to your adventure journey!',
-    avatar: userProfile?.photoURL || userProfile?.profileImage || mockProfile.avatar,
+    avatar: userProfile?.photoURL || userProfile?.profileImage || 'https://images.unsplash.com/photo-1633868060075-d77201a3bbab?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxyZXRybyUyMGdhbWluZyUyMDgtYml0fGVufDF8fHx8MTc1NjU0NjIwMXww&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral',
     stats: {
       adventuresCompleted: questsJoined,
       adventuresOrganized: questsOrganized,
     },
-    recentActivity: mockProfile.recentActivity // This would be fetched from a real activity log
+    recentActivity: recentActivity
   }
 
   return (
@@ -405,7 +435,9 @@ export function ProfileScreen({ isProfileCompleted = true, onStartProfileCreatio
                   <div className="gaming-panel p-4 text-center border border-neon-pink/30 bg-gradient-to-br from-neon-pink/10 to-neon-pink/5">
                     <div className="text-3xl mb-2">🦋</div>
                     <div className="text-xs font-bold text-neon-pink mb-1">Social Butterfly</div>
-                    <div className="text-lg font-bold text-neon-pink mb-1">12</div>
+                    <div className="text-lg font-bold text-neon-pink mb-1">
+                      {isLoading ? '...' : (badgeStats?.badgesReceivedByType?.butterfly || 0)}
+                    </div>
                     <div className="text-xs text-muted-foreground">Great fun to hang with</div>
                   </div>
 
@@ -413,7 +445,9 @@ export function ProfileScreen({ isProfileCompleted = true, onStartProfileCreatio
                   <div className="gaming-panel p-4 text-center border border-neon-cyan/30 bg-gradient-to-br from-neon-cyan/10 to-neon-cyan/5">
                     <div className="text-3xl mb-2">⚔️</div>
                     <div className="text-xs font-bold text-neon-cyan mb-1">Knight</div>
-                    <div className="text-lg font-bold text-neon-cyan mb-1">8</div>
+                    <div className="text-lg font-bold text-neon-cyan mb-1">
+                      {isLoading ? '...' : (badgeStats?.badgesReceivedByType?.knight || 0)}
+                    </div>
                     <div className="text-xs text-muted-foreground">Thanks for saving the day!</div>
                   </div>
 
@@ -421,7 +455,9 @@ export function ProfileScreen({ isProfileCompleted = true, onStartProfileCreatio
                   <div className="gaming-panel p-4 text-center border border-neon-green/30 bg-gradient-to-br from-neon-green/10 to-neon-green/5">
                     <div className="text-3xl mb-2">🌱</div>
                     <div className="text-xs font-bold text-neon-green mb-1">Seedling</div>
-                    <div className="text-lg font-bold text-neon-green mb-1">3</div>
+                    <div className="text-lg font-bold text-neon-green mb-1">
+                      {isLoading ? '...' : (badgeStats?.badgesReceivedByType?.grass || 0)}
+                    </div>
                     <div className="text-xs text-muted-foreground">Kudos on stepping out of your house</div>
                       </div>
 
@@ -429,7 +465,9 @@ export function ProfileScreen({ isProfileCompleted = true, onStartProfileCreatio
                   <div className="gaming-panel p-4 text-center border border-neon-orange/30 bg-gradient-to-br from-neon-orange/10 to-neon-orange/5">
                     <div className="text-3xl mb-2">💝</div>
                     <div className="text-xs font-bold text-neon-orange mb-1">Slight Crush</div>
-                    <div className="text-lg font-bold text-neon-orange mb-1">6</div>
+                    <div className="text-lg font-bold text-neon-orange mb-1">
+                      {isLoading ? '...' : (badgeStats?.badgesReceivedByType?.heart || 0)}
+                    </div>
                     <div className="text-xs text-muted-foreground">Call me maybe?</div>
                     </div>
                 </div>
@@ -438,7 +476,9 @@ export function ProfileScreen({ isProfileCompleted = true, onStartProfileCreatio
                 <div className="mt-4 text-center">
                   <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full gaming-panel border border-neon-cyan/30">
                     <Star className="w-4 h-4 text-neon-cyan" />
-                    <span className="text-sm font-bold text-neon-cyan">29 Total Badges Received</span>
+                    <span className="text-sm font-bold text-neon-cyan">
+                      {isLoading ? '...' : (badgeStats?.badgesReceived || 0)} Total Badges Received
+                    </span>
                     <Star className="w-4 h-4 text-neon-cyan" />
               </div>
                 </div>
@@ -458,18 +498,33 @@ export function ProfileScreen({ isProfileCompleted = true, onStartProfileCreatio
                 <h3 className="font-bold text-foreground uppercase tracking-wider">Recent Heroics</h3>
               </div>
               <div className="space-y-3">
-                {profileData.recentActivity.map((activity, index) => (
-                  <div key={index} className="flex items-center gap-3 p-3 rounded-lg gaming-panel">
+                {profileData.recentActivity.length > 0 ? (
+                  profileData.recentActivity.map((activity, index) => (
+                    <div key={index} className="flex items-center gap-3 p-3 rounded-lg gaming-panel">
+                      <div className="w-8 h-8 rounded-full bg-neon-green/20 flex items-center justify-center">
+                        <span className="text-sm">⚡</span>
+                      </div>
+                      <div className="flex-1">
+                        <div className="text-sm font-semibold text-foreground">{activity}</div>
+                        <div className="text-xs text-muted-foreground">
+                          {activity.includes('Created') || activity.includes('Joined') 
+                            ? 'Recent activity' 
+                            : 'Get started!'}
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="flex items-center gap-3 p-3 rounded-lg gaming-panel">
                     <div className="w-8 h-8 rounded-full bg-neon-green/20 flex items-center justify-center">
                       <span className="text-sm">⚡</span>
                     </div>
                     <div className="flex-1">
-                      <div className="text-sm font-semibold text-foreground">{activity}</div>
-                      <div className="text-xs text-muted-foreground">{index === 0 ? '2 days ago' : index === 1 ? '5 days ago' : '1 week ago'}</div>
+                      <div className="text-sm font-semibold text-foreground">Start your adventure journey!</div>
+                      <div className="text-xs text-muted-foreground">Join or create your first quest</div>
                     </div>
-
                   </div>
-                ))}
+                )}
               </div>
             </div>
           </div>

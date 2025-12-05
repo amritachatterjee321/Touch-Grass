@@ -55,6 +55,7 @@ export function ChatScreen({ chatId, questTitle, onBack, onLeaveChat }: ChatScre
   const [chatData, setChatData] = useState<any>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const imageOptionsRef = useRef<HTMLDivElement>(null)
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
@@ -94,6 +95,40 @@ export function ChatScreen({ chatId, questTitle, onBack, onLeaveChat }: ChatScre
   useEffect(() => {
     scrollToBottom()
   }, [messages])
+
+  // Close image options menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent | TouchEvent) => {
+      if (showImageOptions && imageOptionsRef.current) {
+        const target = event.target as HTMLElement
+        // Don't close if clicking inside the menu
+        if (imageOptionsRef.current.contains(target)) {
+          return // Don't close if clicking inside menu
+        }
+        // Don't close if clicking on the image button that opens the menu
+        const imageButton = document.querySelector('button:has(svg.text-neon-purple)')
+        if (imageButton && imageButton.contains(target)) {
+          return
+        }
+        // Close if click is outside
+        setShowImageOptions(false)
+      }
+    }
+
+    if (showImageOptions) {
+      // Use a delay to avoid closing immediately when opening
+      const timeoutId = setTimeout(() => {
+        document.addEventListener('mousedown', handleClickOutside, false)
+        document.addEventListener('touchstart', handleClickOutside, false)
+      }, 300)
+
+      return () => {
+        clearTimeout(timeoutId)
+        document.removeEventListener('mousedown', handleClickOutside, false)
+        document.removeEventListener('touchstart', handleClickOutside, false)
+      }
+    }
+  }, [showImageOptions])
 
   const handleSendMessage = async () => {
     if (!newMessage.trim() || !user || sending) {
@@ -517,21 +552,119 @@ export function ChatScreen({ chatId, questTitle, onBack, onLeaveChat }: ChatScre
 
       {/* Image Options Menu */}
       {showImageOptions && (
-        <div className="mx-3 hud-card p-2.5 mb-2">
+        <div 
+          ref={imageOptionsRef} 
+          className="mx-3 hud-card p-2.5 mb-2" 
+          style={{ 
+            position: 'relative', 
+            zIndex: 9999, 
+            pointerEvents: 'auto'
+          }}
+        >
           <div className="flex gap-2">
             <button
-              onClick={() => fileInputRef.current?.click()}
+              type="button"
+              onClick={(e) => {
+                e.preventDefault()
+                e.stopPropagation()
+                setShowImageOptions(false)
+                // Use requestAnimationFrame to ensure DOM is ready
+                requestAnimationFrame(() => {
+                  if (fileInputRef.current) {
+                    const input = fileInputRef.current
+                    // Remove any capture attribute that might be set
+                    input.removeAttribute('capture')
+                    // Make input temporarily accessible
+                    input.style.pointerEvents = 'auto'
+                    input.style.position = 'fixed'
+                    input.style.top = '50%'
+                    input.style.left = '50%'
+                    input.style.width = '1px'
+                    input.style.height = '1px'
+                    input.style.opacity = '0'
+                    input.style.zIndex = '99999'
+                    // Trigger click
+                    try {
+                      const clickEvent = new MouseEvent('click', {
+                        view: window,
+                        bubbles: true,
+                        cancelable: true
+                      })
+                      input.dispatchEvent(clickEvent)
+                      // Also try direct click
+                      input.click()
+                      // Reset styles after a moment
+                      setTimeout(() => {
+                        if (input) {
+                          input.style.pointerEvents = 'none'
+                          input.style.position = 'absolute'
+                          input.style.top = ''
+                          input.style.left = ''
+                          input.style.zIndex = '-1'
+                        }
+                      }, 100)
+                    } catch (error) {
+                      console.error('Error clicking file input:', error)
+                    }
+                  }
+                })
+              }}
               className="flex items-center gap-2 p-2 rounded-lg hover:bg-muted transition-colors flex-1"
+              style={{ pointerEvents: 'auto', cursor: 'pointer', position: 'relative', zIndex: 10000 }}
             >
               <FileImage className="w-4 h-4 text-neon-purple" />
               <span className="text-sm">Gallery</span>
             </button>
             <button
-              onClick={() => {
-                // In real app, would open camera
-                fileInputRef.current?.click()
+              type="button"
+              onClick={(e) => {
+                e.preventDefault()
+                e.stopPropagation()
+                setShowImageOptions(false)
+                // Use requestAnimationFrame to ensure DOM is ready
+                requestAnimationFrame(() => {
+                  if (fileInputRef.current) {
+                    const input = fileInputRef.current
+                    // Set capture attribute to prefer camera on mobile
+                    input.setAttribute('capture', 'environment')
+                    // Make input temporarily accessible
+                    input.style.pointerEvents = 'auto'
+                    input.style.position = 'fixed'
+                    input.style.top = '50%'
+                    input.style.left = '50%'
+                    input.style.width = '1px'
+                    input.style.height = '1px'
+                    input.style.opacity = '0'
+                    input.style.zIndex = '99999'
+                    // Trigger click
+                    try {
+                      const clickEvent = new MouseEvent('click', {
+                        view: window,
+                        bubbles: true,
+                        cancelable: true
+                      })
+                      input.dispatchEvent(clickEvent)
+                      // Also try direct click
+                      input.click()
+                      // Reset styles and capture attribute after a moment
+                      setTimeout(() => {
+                        if (input) {
+                          input.style.pointerEvents = 'none'
+                          input.style.position = 'absolute'
+                          input.style.top = ''
+                          input.style.left = ''
+                          input.style.zIndex = '-1'
+                          input.removeAttribute('capture')
+                        }
+                      }, 200)
+                    } catch (error) {
+                      console.error('Error clicking file input for camera:', error)
+                    }
+                  }
+                })
               }}
               className="flex items-center gap-2 p-2 rounded-lg hover:bg-muted transition-colors flex-1"
+              style={{ pointerEvents: 'auto', cursor: 'pointer', position: 'relative', zIndex: 10000 }}
             >
               <Camera className="w-4 h-4 text-neon-green" />
               <span className="text-sm">Camera</span>
@@ -545,12 +678,18 @@ export function ChatScreen({ chatId, questTitle, onBack, onLeaveChat }: ChatScre
         <div className="hud-card p-2.5">
           <div className="flex items-end gap-2">
             {/* Action Buttons */}
-            <div className="flex gap-1">
+            <div className="flex gap-1" style={{ position: 'relative', zIndex: 20, pointerEvents: 'auto' }}>
               <button
-                onClick={() => setShowImageOptions(!showImageOptions)}
+                onClick={(e) => {
+                  e.preventDefault()
+                  e.stopPropagation()
+                  setShowImageOptions(!showImageOptions)
+                }}
                 disabled={uploadingImage || sending}
                 className="p-2 rounded-lg hover:bg-muted transition-colors touch-manipulation active:scale-[0.95] disabled:opacity-50 disabled:cursor-not-allowed"
-                style={{ WebkitTapHighlightColor: 'transparent', touchAction: 'manipulation' }}
+                style={{ WebkitTapHighlightColor: 'transparent', touchAction: 'manipulation', position: 'relative', zIndex: 20, pointerEvents: 'auto' }}
+                onMouseDown={(e) => e.stopPropagation()}
+                onTouchStart={(e) => e.stopPropagation()}
               >
                 {uploadingImage ? (
                   <div className="w-5 h-5 border-2 border-neon-purple/30 border-t-neon-purple rounded-full animate-spin" />
@@ -560,10 +699,16 @@ export function ChatScreen({ chatId, questTitle, onBack, onLeaveChat }: ChatScre
               </button>
               
               <button
-                onClick={handleShareLocation}
+                onClick={(e) => {
+                  e.preventDefault()
+                  e.stopPropagation()
+                  handleShareLocation()
+                }}
                 disabled={sharingLocation || sending}
                 className="p-2 rounded-lg hover:bg-muted transition-colors touch-manipulation active:scale-[0.95] disabled:opacity-50 disabled:cursor-not-allowed"
-                style={{ WebkitTapHighlightColor: 'transparent', touchAction: 'manipulation' }}
+                style={{ WebkitTapHighlightColor: 'transparent', touchAction: 'manipulation', position: 'relative', zIndex: 20, pointerEvents: 'auto' }}
+                onMouseDown={(e) => e.stopPropagation()}
+                onTouchStart={(e) => e.stopPropagation()}
               >
                 {sharingLocation ? (
                   <div className="w-5 h-5 border-2 border-neon-green/30 border-t-neon-green rounded-full animate-spin" />
@@ -574,7 +719,7 @@ export function ChatScreen({ chatId, questTitle, onBack, onLeaveChat }: ChatScre
             </div>
 
             {/* Message Input */}
-            <div className="flex-1">
+            <div className="flex-1" style={{ position: 'relative', zIndex: 10 }}>
               <textarea
                 value={newMessage}
                 onChange={(e) => setNewMessage(e.target.value)}
@@ -596,10 +741,16 @@ export function ChatScreen({ chatId, questTitle, onBack, onLeaveChat }: ChatScre
 
             {/* Send Button */}
             <button
-              onClick={handleSendMessage}
+              onClick={(e) => {
+                e.preventDefault()
+                e.stopPropagation()
+                handleSendMessage()
+              }}
               disabled={!newMessage.trim() || sending}
               className="p-2 rounded-lg neon-button disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation active:scale-[0.95]"
-              style={{ WebkitTapHighlightColor: 'transparent', touchAction: 'manipulation' }}
+              style={{ WebkitTapHighlightColor: 'transparent', touchAction: 'manipulation', position: 'relative', zIndex: 20, pointerEvents: 'auto' }}
+              onMouseDown={(e) => e.stopPropagation()}
+              onTouchStart={(e) => e.stopPropagation()}
             >
               {sending ? (
                 <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -614,10 +765,23 @@ export function ChatScreen({ chatId, questTitle, onBack, onLeaveChat }: ChatScre
       {/* Hidden File Input */}
       <input
         ref={fileInputRef}
+        id="chat-image-upload"
         type="file"
         accept="image/*"
-        onChange={handleImageUpload}
-        className="hidden"
+        onChange={(e) => {
+          console.log('File input onChange triggered', e.target.files)
+          handleImageUpload(e)
+        }}
+        style={{ 
+          position: 'absolute',
+          width: '0.1px',
+          height: '0.1px',
+          opacity: 0,
+          overflow: 'hidden',
+          zIndex: -1,
+          pointerEvents: 'none'
+        }}
+        aria-label="Upload image"
       />
     </div>
   )

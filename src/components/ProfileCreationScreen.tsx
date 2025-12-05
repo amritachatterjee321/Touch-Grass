@@ -192,7 +192,7 @@ export function ProfileCreationScreen({ onProfileComplete, onExit, existingProfi
       interests: selectedInterests,
       profileImage
     }
-    toast.success(isEditMode ? "Profile updated successfully! 🎉" : "Profile created successfully! Welcome to TouchGrass! 🎮", {
+    toast.success(isEditMode ? "Profile updated successfully! 🎉" : "Profile created successfully! Welcome to TagAlong! 🎮", {
       description: isEditMode ? "Your changes have been saved" : "Time to start your first quest!"
     })
     onProfileComplete(profileData)

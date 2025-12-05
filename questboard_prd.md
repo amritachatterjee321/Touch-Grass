@@ -1,4 +1,4 @@
-TouchGrass - Product Requirements Document
+TagAlong - Product Requirements Document
 Table of Contents
 
 Product Overview
@@ -11,7 +11,7 @@ Future Enhancements
 
 
 1. Product Overview
-Product Name: TouchGrass
+Product Name: TagAlong
 Vision: A retro gaming-themed social platform that gamifies real-world activities by helping people organize and join local events through a quest-based interface.
 Mission Statement: Encourage people to "touch grass" (go outside and socialize) by making event planning fun, engaging, and reminiscent of classic video game adventures.
 

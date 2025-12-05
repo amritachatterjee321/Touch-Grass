@@ -451,7 +451,7 @@ export function SettingsScreen({ onBack, onEditProfile, onLogout, onDeleteAccoun
               style={{ pointerEvents: 'auto' }}
             >
               <p className="text-sm font-medium text-foreground pointer-events-none">Terms of Service</p>
-              <p className="text-xs text-muted-foreground pointer-events-none">Your agreement to use TouchGrass</p>
+              <p className="text-xs text-muted-foreground pointer-events-none">Your agreement to use TagAlong</p>
             </button>
           </div>
         </div>
@@ -461,16 +461,16 @@ export function SettingsScreen({ onBack, onEditProfile, onLogout, onDeleteAccoun
           <Button
             onClick={handleLogout}
             variant="outline"
-            className="w-full py-4 border-neon-orange text-neon-orange hover:bg-neon-orange/10 flex items-center justify-center gap-2 font-bold"
+            className="w-full py-4 border-2 border-neon-orange text-neon-orange hover:bg-neon-orange/10 flex items-center justify-center gap-2 font-bold text-base"
           >
-            <LogOut className="w-4 h-4" />
+            <LogOut className="w-5 h-5" />
             LOGOUT
           </Button>
           
           <Button
             onClick={() => setIsDeleteModalOpen(true)}
             variant="outline"
-            className="w-full py-4 border-destructive text-destructive hover:bg-destructive/10 flex items-center justify-center gap-2 font-bold"
+            className="w-full py-2 border border-destructive/30 text-destructive/70 hover:bg-destructive/5 hover:border-destructive/50 flex items-center justify-center gap-2 font-medium text-sm opacity-70 hover:opacity-100"
           >
             <Trash2 className="w-4 h-4" />
             DELETE ACCOUNT

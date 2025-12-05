@@ -1,7 +1,7 @@
 # 🔑 User Authentication & Profile Linking
 
 ## Overview
-This document explains how user profiles are linked to Firebase Authentication UIDs and Google accounts in the TouchGrass application.
+This document explains how user profiles are linked to Firebase Authentication UIDs and Google accounts in the TagAlong application.
 
 ---
 
@@ -269,5 +269,5 @@ Firestore Database
 ---
 
 **Last Updated**: October 2, 2025
-**Maintained By**: TouchGrass Development Team
+**Maintained By**: TagAlong Development Team
 

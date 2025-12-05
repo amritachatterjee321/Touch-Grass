@@ -395,7 +395,7 @@ function AppContent() {
       }
       
       toast.success("Profile completed successfully! 🎉", {
-        description: "Welcome to TouchGrass!"
+        description: "Welcome to TagAlong!"
       })
       
       // Check if user originally wanted to create a quest or navigate to a tab
