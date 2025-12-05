@@ -1,4 +1,4 @@
-import { User, Bell } from "lucide-react"
+import { User, Bell, Send } from "lucide-react"
 
 interface GameHeaderProps {
   onOpenNotifications?: () => void
@@ -23,12 +23,24 @@ export function GameHeader({ onOpenNotifications, onOpenSettings }: GameHeaderPr
         paddingLeft: 'max(16px, env(safe-area-inset-left))',
         paddingRight: 'max(16px, env(safe-area-inset-right))'
       }}>
-        {/* Left - TouchGrass Branding - Mobile Optimized */}
+        {/* Left - tag along Branding - Mobile Optimized */}
         <div className="flex items-center flex-1">
-          <h1 className="font-black text-xl uppercase tracking-wider gradient-text" style={{
-            fontFamily: 'Inter, monospace'
+          <h1 className="font-black text-xl lowercase tracking-wide" style={{
+            fontFamily: 'Inter, monospace',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '2px'
           }}>
-            TOUCH<span className="text-neon-green">GRASS</span>
+            <span style={{ color: '#9333EA' }}>tag</span>
+            <Send 
+              className="w-4 h-4 flex-shrink-0" 
+              style={{ 
+                color: '#60A5FA',
+                marginLeft: '2px',
+                marginRight: '2px'
+              }} 
+            />
+            <span style={{ color: '#374151' }}>along</span>
           </h1>
         </div>
 
