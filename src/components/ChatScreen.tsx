@@ -4,6 +4,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { toast } from "sonner"
 import { sendMessage, subscribeToChatMessages, Message as FirebaseMessage, getChat } from "../firebase/chats"
 import { useFirebase } from "../contexts/FirebaseContext"
+import { uploadImageToStorage } from "../firebase/storage"
 
 interface Message {
   id: string
@@ -49,6 +50,8 @@ export function ChatScreen({ chatId, questTitle, onBack, onLeaveChat }: ChatScre
   const [isMuted, setIsMuted] = useState(false)
   const [loading, setLoading] = useState(true)
   const [sending, setSending] = useState(false)
+  const [uploadingImage, setUploadingImage] = useState(false)
+  const [sharingLocation, setSharingLocation] = useState(false)
   const [chatData, setChatData] = useState<any>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -167,61 +170,108 @@ export function ChatScreen({ chatId, questTitle, onBack, onLeaveChat }: ChatScre
     setReplyingTo(message)
   }
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
-    if (file && user) {
-      // In real app, you'd upload to a server and get URL
-      const mockImageUrl = URL.createObjectURL(file)
-      
-      const message: Message = {
-        id: Date.now().toString(),
-        chatId,
-        senderId: user.uid,
-        senderName: user.displayName || 'Anonymous',
-        senderPhotoURL: user.photoURL,
-        content: mockImageUrl,
-        timestamp: new Date(),
-        messageType: 'image'
-      }
+    if (!file || !user) return
 
-      setMessages(prev => [...prev, message])
-      setShowImageOptions(false)
+    setUploadingImage(true)
+    setShowImageOptions(false)
+    
+    try {
+      // Upload image to Firebase Storage
+      const imagePath = `chat-images/${chatId}/${Date.now()}-${file.name}`
+      const imageUrl = await uploadImageToStorage(file, imagePath)
+      
+      // Send message with image URL
+      const replyData = replyingTo ? {
+        messageId: replyingTo.id,
+        senderName: replyingTo.senderName,
+        content: replyingTo.content,
+        messageType: replyingTo.messageType
+      } : undefined
+
+      await sendMessage(
+        chatId,
+        user.uid,
+        user.displayName || 'Anonymous',
+        user.photoURL,
+        imageUrl,
+        'image',
+        replyData
+      )
+      
+      setReplyingTo(null)
+      toast.success('Image sent!')
+    } catch (error: any) {
+      console.error('❌ Error uploading image:', error)
+      toast.error(error.message || 'Failed to upload image')
+    } finally {
+      setUploadingImage(false)
+      // Reset file input so same file can be selected again
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ''
+      }
     }
   }
 
-  const handleShareLocation = () => {
+  const handleShareLocation = async () => {
     if (!user) return
     
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const message: Message = {
-            id: Date.now().toString(),
-            chatId,
-            senderId: user.uid,
-            senderName: user.displayName || 'Anonymous',
-            senderPhotoURL: user.photoURL,
-            content: `Location: ${position.coords.latitude.toFixed(4)}, ${position.coords.longitude.toFixed(4)}`,
-            timestamp: new Date(),
-            messageType: 'text'
-          }
-          setMessages(prev => [...prev, message])
-        },
-        () => {
-          // Fallback to mock location
-          const message: Message = {
-            id: Date.now().toString(),
-            chatId,
-            senderId: user.uid,
-            senderName: user.displayName || 'Anonymous',
-            senderPhotoURL: user.photoURL,
-            content: 'Location: 12.9716, 77.5946',
-            timestamp: new Date(),
-            messageType: 'text'
-          }
-          setMessages(prev => [...prev, message])
+    setSharingLocation(true)
+    
+    try {
+      let locationContent: string
+      
+      if (navigator.geolocation) {
+        try {
+          const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+            navigator.geolocation.getCurrentPosition(resolve, reject, {
+              timeout: 10000,
+              enableHighAccuracy: false
+            })
+          })
+          
+          locationContent = `📍 Location: ${position.coords.latitude.toFixed(6)}, ${position.coords.longitude.toFixed(6)}`
+        } catch (geoError) {
+          console.warn('Geolocation error, using fallback:', geoError)
+          // Fallback to a default location (or you could show an error)
+          locationContent = '📍 Location: Unable to get current location'
+          toast.error('Could not get your location. Please check your location permissions.')
+          setSharingLocation(false)
+          return
         }
+      } else {
+        locationContent = '📍 Location: Geolocation not supported'
+        toast.error('Geolocation is not supported by your browser')
+        setSharingLocation(false)
+        return
+      }
+      
+      // Send location message
+      const replyData = replyingTo ? {
+        messageId: replyingTo.id,
+        senderName: replyingTo.senderName,
+        content: replyingTo.content,
+        messageType: replyingTo.messageType
+      } : undefined
+
+      await sendMessage(
+        chatId,
+        user.uid,
+        user.displayName || 'Anonymous',
+        user.photoURL,
+        locationContent,
+        'text',
+        replyData
       )
+      
+      setReplyingTo(null)
+      toast.success('Location shared!')
+    } catch (error: any) {
+      console.error('❌ Error sharing location:', error)
+      toast.error(error.message || 'Failed to share location')
+    } finally {
+      setSharingLocation(false)
     }
   }
 
@@ -498,18 +548,28 @@ export function ChatScreen({ chatId, questTitle, onBack, onLeaveChat }: ChatScre
             <div className="flex gap-1">
               <button
                 onClick={() => setShowImageOptions(!showImageOptions)}
-                className="p-2 rounded-lg hover:bg-muted transition-colors touch-manipulation active:scale-[0.95]"
+                disabled={uploadingImage || sending}
+                className="p-2 rounded-lg hover:bg-muted transition-colors touch-manipulation active:scale-[0.95] disabled:opacity-50 disabled:cursor-not-allowed"
                 style={{ WebkitTapHighlightColor: 'transparent', touchAction: 'manipulation' }}
               >
-                <Image className="w-5 h-5 text-neon-purple" />
+                {uploadingImage ? (
+                  <div className="w-5 h-5 border-2 border-neon-purple/30 border-t-neon-purple rounded-full animate-spin" />
+                ) : (
+                  <Image className="w-5 h-5 text-neon-purple" />
+                )}
               </button>
               
               <button
                 onClick={handleShareLocation}
-                className="p-2 rounded-lg hover:bg-muted transition-colors touch-manipulation active:scale-[0.95]"
+                disabled={sharingLocation || sending}
+                className="p-2 rounded-lg hover:bg-muted transition-colors touch-manipulation active:scale-[0.95] disabled:opacity-50 disabled:cursor-not-allowed"
                 style={{ WebkitTapHighlightColor: 'transparent', touchAction: 'manipulation' }}
               >
-                <MapPin className="w-5 h-5 text-neon-green" />
+                {sharingLocation ? (
+                  <div className="w-5 h-5 border-2 border-neon-green/30 border-t-neon-green rounded-full animate-spin" />
+                ) : (
+                  <MapPin className="w-5 h-5 text-neon-green" />
+                )}
               </button>
             </div>
 
